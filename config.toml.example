@@ -1,0 +1,43 @@
+# NIMPLANT CONFIGURATION
+
+[server]
+# Configure the API for the C2 server here. Recommended to keep at 127.0.0.1, change IP to 0.0.0.0 to listen on all interfaces.
+ip = "127.0.0.1"
+# Configure port for the web interface of the C2 server, including API
+port = 31337
+
+[listener]
+# Configure listener type (HTTP or HTTPS)
+type = "HTTP"
+# Certificate and key path used for 'HTTPS" listener type
+sslCertPath = ""
+sslKeyPath = ""
+# Configure the hostname for NimPlant to connect to
+# Leave as "" for IP:PORT-based connections
+hostname = ""
+# Configure listener IP, mandatory even if hostname is specified
+ip = "0.0.0.0"
+# Configure listener port, mandatory even if hostname is specified
+port = 80
+# Configure the URI paths used for C2 communications
+registerPath = "/register"
+taskPath = "/task"
+resultPath = "/result"
+
+[nimplant]
+# Allow risky commands such as 'execute-assembly', 'powershell', or 'shinject' - operator discretion advised
+riskyMode = true
+# Enable Ekko sleep mask instead of a regular sleep() call
+# Only available for (self-deleting) executables, not for DLL or shellcode
+sleepMask = false
+# Configure the default sleep time in seconds
+sleepTime = 10
+# Configure the default sleep jitter in %
+sleepJitter = 0
+# Configure the kill date for Nimplants (format: yyyy-MM-dd)
+# Nimplants will exit if this date has passed
+killDate = "2050-12-31"
+# Configure the user-agent that NimPlants use to connect
+# Also used by the server to verify NimPlant traffic
+# Choosing an inconspicuous but uncommon user-agent is therefore recommended
+userAgent = "NimPlant C2 Client"

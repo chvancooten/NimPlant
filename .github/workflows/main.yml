@@ -1,0 +1,56 @@
+name: Test NimPlant builds
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-nimplant:
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout code into workspace directory
+      uses: actions/checkout@v3
+
+    - name: Install Python 3.10
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.10'
+
+    - name: Install Nim 1.6.10
+      uses: iffy/install-nim@v4
+      with:
+        version: binary:1.6.10
+
+    - name: Install Python dependencies for NimPlant
+      run: pip install -r ./server/requirements.txt
+
+    - name: Install Nim dependencies for NimPlant
+      working-directory: ./client
+      run: nimble install -d -y
+
+    - name: Install mingw-w64 on Linux
+      if: matrix.os == 'ubuntu-latest'
+      uses: egor-tensin/setup-mingw@v2
+      with:
+        platform: x64
+
+    - name: Copy example configuration
+      run: cp config.toml.example config.toml
+      shell: bash
+
+    - name: Compile NimPlant
+      run: python NimPlant.py compile all
+
+    - name: Check if all files compiled correctly
+      uses: andstor/file-existence-action@v2
+      with:
+        fail: true
+        files: "./client/bin/NimPlant.bin, ./client/bin/NimPlant.dll, ./client/bin/NimPlant.exe, ./client/bin/NimPlant-selfdelete.exe"

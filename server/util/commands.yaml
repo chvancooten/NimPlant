@@ -1,0 +1,459 @@
+  # Server commands - will be handled without interaction with NimPlant
+  - command: cancel
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Cancel all pending tasks."
+    help: |
+      Takes no arguments.
+      
+      Cancel will cancel all queued tasks. Any tasks that are currently running will not be affected.
+
+  - command: clear
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Clear the screen."
+    help: |
+      Takes no arguments.
+      
+      Will clear the screen (console mode only).
+
+  - command: getpid
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Show process ID of the currently selected NimPlant."
+    help: |
+      Takes no arguments.
+      
+      Will show the process ID of the currently selected NimPlant. Does not interact with NimPlant.
+
+  - command: getprocname
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Show process name of the currently selected NimPlant."
+    help: |
+      Takes no arguments.
+      
+      Will show the process name of the currently selected NimPlant. Does not interact with NimPlant.
+
+  - command: help
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "<command> Show this help menu or command-specific help."
+    help: |
+      Takes an optional argument indicating the command to show extended help for.
+      
+      Shows the help menu or command-specific help.
+      If no command is specified, the help menu will be shown. 
+      If a command is specified, extended help for that command will be shown. 
+      But I guess you already figured that out since you're reading this :)
+
+  - command: hostname
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Show hostname of the currently selected NimPlant."
+    help: |
+      Takes no arguments.
+      
+      Will show the hostname of the currently selected NimPlant. Does not interact with NimPlant.
+
+  - command: ipconfig
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "List IP address information of the currently selected NimPlant."
+    help: |
+      Takes no arguments.
+      
+      Will show the IP address configuration of the currently selected NimPlant. Does not interact with NimPlant.
+
+  - command: list
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Show list of active NimPlants."
+    help: |
+      Takes no arguments.
+      
+      Will show a list of all NimPlants that are currently active. Mostly useful in console mode.
+
+  - command: listall
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Show list of all NimPlants."
+    help: |
+      Takes no arguments.
+      
+      Will show a list of all NimPlants, including inactive ones. Mostly useful in console mode.
+
+  - command: nimplant
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Show info about the currently selected NimPlant."
+    help: |
+      Takes no arguments.
+      
+      Will show all known information about the currently selected NimPlant. Does not interact with NimPlant.
+
+  - command: osbuild
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Show operating system build information for the currently selected NimPlant."
+    help: |
+      Takes no arguments.
+      
+      Will show the operating system build information for the currently selected NimPlant. Does not interact with NimPlant.
+
+  - command: select
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "[id] Select another NimPlant."
+    help: |
+      Takes the target NimPlant's ID as an argument.
+
+      Will select the NimPlant with the specified ID (from the 'list' command) as the currently selected NimPlant. 
+      This is only useful in console mode.
+
+  - command: exit
+    server_command: True
+    risky_command: False
+    gui_command: False
+    description: "Exit the server, killing all NimPlants."
+    help: |
+      Takes no arguments.
+      
+      Will gracefully exit the server.
+
+      CAUTION: Will send a kill signal to ALL ACTIVE NIMPLANTS!
+
+# NimPlant commands - will be handled by NimPlant
+  - command: cat
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[filename] Print a file's contents to the screen."
+    help: |
+      Takes a file path on the target system as an argument.
+
+      Will print the contents of the specified file to the screen.
+
+  - command: cd
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[directory] Change the working directory."
+    help: |
+      Takes a directory path on the target system as an argument.
+
+      Will change the working directory to the specified directory.
+
+  - command: cp
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[source] [destination] Copy a file or directory."
+    help: |
+      Takes two arguments: a source and destination path (either a file or directory) on the target system.
+
+      Will copy the specified source file or directory to the specified destination.
+
+
+  - command: curl
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[url] Get a webpage remotely and return the results."
+    help: |
+      Takes an URL as an argument.
+
+      Will download the specified URL from the target system and return the results.
+
+  - command: download
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[remotefilepath] <localfilepath> Download a file from NimPlant's disk to the NimPlant server."
+    help: |
+      Takes a remote file path as an argument, and an optional local file path on the NimPlant server as a second argument.
+      If a local file path is specified, the downloaded file will be saved to that path on the NimPlant server. 
+      If no local file path is specified, the downloaded file will be saved in 'server/downloads/server-[server-guid]',
+      where it will be accessible via the web GUI.
+
+      Will download the specified file from the target system to the NimPlant server. 
+
+  - command: env
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "Get environment variables."
+    help: Takes no arguments. Will return the environment variables for the NimPlant process.
+
+  - command: execute-assembly
+    server_command: False
+    risky_command: True
+    gui_command: False
+    description: "(GUI) <BYPASSAMSI=0> <BLOCKETW=0> [localfilepath] <arguments> Execute .NET assembly from memory. AMSI/ETW patched by default. Loads the CLR."
+    help: |
+      [RISKY COMMAND, GUI COMMAND]
+      Takes two optional arguments to indicate whether or not AMSI and ETW should be patched (patched by default, unless already patched).
+      Additionally, takes a mandatory argument with the local file path to the .NET assembly to execute, 
+      and optionally any arguments to pass to the assembly.
+
+      This command executes a C# / .NET assembly binary. NimPlant will return the console output of the executed .NET assembly.
+
+      Running a .NET assembly will load the Common Language Runtime (CLR) into the target process, be mindful of the OPSEC implications of this.
+
+  - command: inline-execute
+    server_command: False
+    risky_command: True
+    gui_command: True
+    description: "(GUI) [localfilepath] [entrypoint] <arg1 type1 arg2 type2..> Execute Beacon Object Files (BOF) from memory."
+    help: |
+      [RISKY COMMAND, GUI COMMAND]
+      Takes a mandatory argument with the local file path to the BOF to execute, and a mandatory argument with the entrypoint of the BOF.
+      Optionally, takes any number of arguments to pass to the BOF.
+      Arguments are passed as argument-type pairs, where the type can be either of the following:
+      - 'string' (alias: 'z')
+      - 'wstring' (or 'Z')
+      - 'integer' (aliases: 'int' or 'i')
+      - 'short' ('s')
+      - 'binary' ('bin' or 'b')
+
+      This command executes a Beacon Object File (BOF). NimPlant will return the console output of the executed BOF.
+      For more information and examples, refer to the NimPlant README file.
+
+      CAUTION: BOFs are volatile by nature, and running a faulty BOF or passing wrong arguments or types WILL crash your NimPlant session! 
+      Make sure to test BOFs before deploying!
+
+  - command: getAv
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "List Antivirus / EDR products on target using WMI."
+    help: |
+      Takes no arguments.
+
+      Lists any registered Antivirus and/or EDR products on the target using WMI.
+
+  - command: getDom
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "Get the domain the target is joined to."
+    help: |
+      Takes no arguments.
+
+      Will return the domain the target is joined to via the 'GetComputerNameEx' Windows API.
+
+  - command: getLocalAdm
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "List local administrators on the target using WMI."
+    help: |
+      Takes no arguments.
+
+      Lists any local administrators on the target using WMI.
+
+  - command: kill
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "Kill the currently selected NimPlant."
+    help: |
+      Takes no arguments.
+
+      Will kill the currently selected NimPlant. Mostly useful in console mode.
+
+  - command: ls
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "<path> List files and folders in a certain directory. Lists current directory by default."
+    help: |
+      Takes an optional path on the target system as an argument.
+
+      Will list the files and folders in the specified directory. 
+      If no path is specified, will list the files and folders in the current working directory.
+
+  - command: mkdir
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[directory] Create a directory (and its parent directories if required)."
+    help: |
+      Takes an optional path on the target system as an argument.
+
+      Will create the specified directory. Will create any missing parent directories if they are not present.
+      If no path is specified, will create the directory within the current working directory.
+
+  - command: mv
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[source] [destination] Move a file or directory."
+    help: |
+      Takes two arguments: a source and destination path (either a file or directory) on the target system.
+
+      Will move the specified source file or directory to the specified destination.
+
+  - command: ps
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "List running processes on the target. Indicates current process."
+    help: |
+      Takes no arguments.
+
+      Will list the running processes on the target system using the Windows API.
+      The current NimPlant process will be highlighted.
+
+  - command: pwd
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "Get the current working directory."
+    help: |
+      Takes no arguments.
+
+      Will return the current working directory on the target system.
+
+  - command: reg
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[query|add] [path] <key> <value> Query or modify the registry. New values will be added as REG_SZ."
+    help: |
+      Takes two mandatory arguments: either the 'query' or 'add' command, and a path to the registry key.
+      Optionally, takes a key and value to add to the registry if the 'add' command has been selected.
+
+      Will query or modify the registry on the target system. If the query command is used, will return the value of the specified key.
+      If the add command is used, will add the specified key and value to the registry.
+
+      Only supports the HKCU/HKLM registry hives for now, and only supports adding REG_SZ values.
+
+      Example: 'reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run inconspicuous calc.exe'
+
+  - command: rm
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[file] Remove a file or directory."
+    help: |
+      Takes a path on the target system as an argument.
+
+      Will remove the specified file or directory.
+
+  - command: run
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[binary] <arguments> Run a binary from disk. Returns output but blocks NimPlant while running."
+    help: |
+      Takes a mandatory argument with the path on the target system pointing to the binary to run, 
+      and optionally takes any arguments to pass to the binary.
+
+      This command executes a binary on the target system. NimPlant will return the console output of the executed binary.
+
+      CAUTION: The NimPlant session will be blocked while the binary is running. Take care triggering any long-running binaries!
+      Additionally, the binary will be executed as a child process of the NimPlant process. Be mindful of the OPSEC implications of this.
+      
+
+  - command: shell
+    server_command: False
+    risky_command: True
+    gui_command: False
+    description: "[command] Execute a shell command."
+    help: |
+      [RISKY COMMAND]
+      Takes a mandatory argument with the shell command to execute.
+
+      This command executes a shell command on the target system. NimPlant will return the console output of the executed shell command.
+
+      CAUTION: NimPlant will run 'cmd.exe /c ...' as a child process of the NimPlant process. Be mindful of the OPSEC implications of this.
+
+  - command: shinject
+    server_command: False
+    risky_command: True
+    gui_command: False
+    description: "[targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation."
+    help: |
+      [RISKY COMMAND]
+      Takes two mandatory arguments: the target process ID and the local path to the shellcode file.
+
+      This command loads raw shellcode from a local file and injects it into the specified process's memory.
+      This command uses dynamic invocation (D/Invoke) to inject the shellcode using Native APIs.
+      The used injection method is relatively straightforward, so be mindful of the OPSEC implications of this.
+      If stealthy injection is a requirement, consider using a (custom) BOF instead via the 'inline-execute' command.
+
+  - command: sleep
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[sleeptime] <jitter%> Change the sleep time of the current NimPlant."
+    help: |
+      Takes two arguments: the new sleep time in seconds, and optionally a jitter percentage.
+
+      Will change the sleep time of the current NimPlant.
+      The sleep time is the time the NimPlant will wait between each command execution.
+      The jitter percentage is the percentage of the sleep time that will be added or subtracted from the sleep time.
+      A high sleep time should be used to avoid detection by defensive products.
+
+      Example: 'sleep 60 10' will set the sleep time to 60 seconds, and add or subtract up to 6 seconds randomly per check-in.
+
+  - command: powershell
+    server_command: False
+    risky_command: True
+    gui_command: False
+    description: "<BYPASSAMSI=0> <BLOCKETW=0> [command] Execute a PowerShell command in an unmanaged runspace. Loads the CLR."
+    help: |
+      [RISKY COMMAND]
+      Takes two optional arguments to indicate whether AMSI and ETW should be bypassed, and a mandatory argument with the PowerShell command to execute.
+
+      This command executes a PowerShell command in an unmanaged runspace.
+      While this does NOT spawn a child process or any instance of 'powershell.exe', 
+      it does load the Common Language Runtime (CLR) into the current process, and opens a console via the 'conhost.exe' process. 
+      Be mindful of the OPSEC implications of this.
+
+  - command: upload
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "(GUI) [localfilepath] <remotefilepath> Upload a file from the NimPlant server to the victim machine."
+    help: |
+      [GUI COMMAND]
+      Takes a mandatory argument with the local path to the file to upload, and optionally takes a remote path to upload the file to.
+
+      This command uploads a file from the NimPlant server to the victim machine. 
+      If no remote path is specified, the file will be uploaded to the current working directory.
+
+  - command: wget
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "[url] <remotefilepath> Download a file to disk remotely."
+    help: |
+      Takes a mandatory argument with the URL to download, and optionally takes a remote file path to save the downloaded file to.
+
+      This command downloads a file from a URL to the victim machine. 
+      If no remote file path is specified, the file will be downloaded to the current working directory.
+
+  - command: whoami
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "Get the user ID that NimPlant is running as."
+    help: |
+      Takes no arguments.
+
+      Will return the user ID that NimPlant is running as using the Windows API. 
+      Will add an asterisk to the name (*) if the user's token is elevated.

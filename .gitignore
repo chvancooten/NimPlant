@@ -1,0 +1,13 @@
+__pycache__/
+.logs
+.vscode
+.xorkey
+*.bin
+*.db
+*.dll
+*.exe
+*.pyc
+bin/
+config.toml
+server/downloads/
+server/uploads/

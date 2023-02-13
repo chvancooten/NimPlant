@@ -1,0 +1,8 @@
+cryptography==35.0.0
+flask_cors==3.0.10
+Flask==1.1.2
+prompt_toolkit==3.0.22; sys_platform=="win32"
+PyCryptoDome==3.10.1
+#readline==6.2.4.1; sys_platform=="linux"
+requests==2.26.0
+toml==0.10.2

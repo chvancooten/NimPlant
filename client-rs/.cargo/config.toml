@@ -1,0 +1,21 @@
+[alias]
+r = "run"
+br = "build --release"
+
+[build]
+jobs = 4
+incremental = true
+pipelining = true
+rustflags = ["-Cembed-bitcode=yes", "-Ctarget-feature=+crt-static"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+codegen-units = 1
+panic = "abort"
+lto = true
+opt-level = "z"
+strip = "symbols"
+
+[target.x86_64-pc-windows-gnu]

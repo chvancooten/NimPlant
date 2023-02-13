@@ -1,0 +1,16 @@
+{
+  "index.html": {
+    "file": "static/index.47e3b014.js",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_vendor.1e9d69d6.js"
+    ],
+    "css": [
+      "static/index.4b967c81.css"
+    ]
+  },
+  "_vendor.1e9d69d6.js": {
+    "file": "static/vendor.1e9d69d6.js"
+  }
+}

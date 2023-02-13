@@ -1,0 +1,23 @@
+@import "nprogress/nprogress.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    font-size: 14px
+}
+
+#nprogress .bar {
+    @apply bg-primary-600;
+}
+
+#nprogress .peg {
+    box-shadow: 0 0 10px theme("colors.primary.400"),
+    0 0 5px theme("colors.primary.600");
+}
+
+#nprogress .spinner-icon {
+    border-top-color: theme("colors.primary.600");
+    border-left-color: theme("colors.primary.600");
+}

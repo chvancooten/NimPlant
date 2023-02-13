@@ -1,0 +1,12 @@
+.xorkey
+*.pyc
+__pycache__/
+bin/
+*.exe
+*.dll
+*.bin
+config.toml
+!client-rs/.cargo/config.toml
+.vscode
+.logs
+target/

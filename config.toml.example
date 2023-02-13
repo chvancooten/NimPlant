@@ -1,0 +1,42 @@
+# NIMPLANT CONFIGURATION
+# Don't forget to remove comments from this toml, as it will be embedded (encrypted) inside the NimPlant binary!
+
+[server]
+# Configure the API for the C2 server here. Recommended to keep at 127.0.0.1, change IP to 0.0.0.0 to listen on all interfaces.
+ip = "127.0.0.1"
+# Configure port for the web interface of the C2 server, including API
+port = 31337
+
+[listener]
+# Configure listener type (HTTP or HTTPS)
+type = "HTTP"
+# Certificate and key path used for HTTPS
+# Note that a valid certificate is required for NimPlant to connect!
+sslCertPath = ""
+sslKeyPath = ""
+# Configure the hostname for NimPlant to connect to
+# Leave as "" for IP:PORT-based connections
+hostname = "www.superlegitimate.site"
+# Configure listener IP, mandatory even if hostname is specified
+ip = "12.34.56.78"
+# Configure listener port, mandatory even if hostname is specified
+port = 80
+# Configure the URI paths used for C2 communications
+registerPath = "/register"
+taskPath = "/task"
+resultPath = "/result"
+
+[nimplant]
+# Allow risky commands such as 'execute-assembly', 'powershell', or 'shinject' - operator discretion advised
+riskyMode = true
+# Configure the default sleep time in seconds
+sleepTimeSeconds = 10
+# Configure the default sleep jitter in %
+sleepJitterPercent = 0
+# Configure the default kill time in hours
+# NimPlants will auto-exit once this time has passed since launch
+killTimeHours = 168
+# Configure the user-agent that NimPlants use to connect
+# Also used by the server to verify NimPlant traffic
+# Choosing an inconspicuous but slightly different UA is therefore recommended
+userAgent = "Mozilla/5.0 (Windows NT 5.2; sl-SI; rv:1.37.30) Gecko/20170923 Firefox/35.0"

@@ -1,0 +1,66 @@
+cargo-features = ["strip"]
+
+[package]
+name = "client-rs"
+version = "0.1.0"
+edition = "2018"
+
+[[bin]]
+name = "rusty_nimplant"
+path = "src/main.rs"
+
+[lib]
+name = "rusty_nimplant"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[features]
+debug = []
+disappear = []
+
+[build-dependencies]
+base64 = { version = "0.13.0" }
+toml = "0.5.8"
+serde_derive = "1.0.126"
+serde = {version = "1.0.126", features = ["derive"]}
+
+[dependencies]
+base64 = { version = "0.13.0" }
+aes = { version = "0.6.0" }
+ctr = { version = "0.6.0" }
+hex-literal = { version = "0.3.1" }
+tokio = { version = "1.9.0", features = ["full"] }
+reqwest = { version = "0.11.4", features = ["rustls-tls", "json"], default-features = false }
+serde_json = "1.0.64"
+sha2 = { version = "0.9.3" }
+rand = "0.8.4"
+toml = "0.5.8"
+serde_derive = "1.0.126"
+serde = {version = "1.0.126", features = ["derive"]}
+whoami = "1.1.2"
+chrono = "0.4.19"
+shellwords = "1.1.0"
+sysinfo = "0.19.2"
+futures = "0.3.16"
+houdini = "1.0.2"
+
+[target."cfg(target_os = \"windows\")".dependencies]
+winapi = { version = "0.3.9", features = ["sysinfoapi", "wbemcli", "consoleapi", "minwindef", "libloaderapi", "handleapi", "ntdef"] }
+ntapi = "0.3.6"
+wmi = "0.9.0"
+winreg = "0.9.0"
+
+[target."cfg(target_os = \"macos\")".dependencies]
+objc = "0.2.7"
+objc-foundation = "0.1.1"
+objc_id = "0.1.1"
+
+[dev-dependencies]
+winapi = { version = "0.3.9", features = ["sysinfoapi", "wbemcli", "consoleapi", "minwindef", "libloaderapi", "handleapi", "ntdef"] }
+ntapi = "0.3.6"
+wmi = "0.9.0"
+winreg = "0.9.0"
+objc = "0.2.7"
+objc-foundation = "0.1.1"
+objc_id = "0.1.1"
+

@@ -1,5 +1,3 @@
-import "pe"
-
 rule nimplant_detection
 {
    meta:
@@ -16,14 +14,14 @@ rule nimplant_detection
           $r2=/(X\-Identifier\:\s)[a-zA-Z0-9]{8}\r\n.*C2 Client\r\n.*gzip/
          
             $oep = { 48 83 EC ( 28 48 8B 05 | 48 48 8B 05 ) [17] ( FC FF FF 90 90 48 83 C4 28 | C4 48 E9 91 FE FF FF 90 4C ) }
-            $t1 = "parsetoml.nim"
-            $t2 = "zippy.nim"
-            $t3 = "gzip.nim"
-            $t4 = "deflate.nim"
-            $t5 = "inflate.nim"
+            $t1 = "parsetoml.nim" fullword
+            $t2 = "zippy.nim" fullword
+            $t3 = "gzip.nim" fullword
+            $t4 = "deflate.nim" fullword
+            $t5 = "inflate.nim" fullword
 
    condition:
-            (($oep at pe.entry_point or $oep) and 4 of ($t1,$t2,$t3,$t4,$t5))
-          or (any of ($s*) and any of ($r*)) 
+          ( $oep and 4 of ($t*) )
+          or 2 of ($s*) 
           or any of ($r*)
 }

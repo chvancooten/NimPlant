@@ -73,6 +73,8 @@ def flaskListener(xor_key):
                     dataJson = json.loads(data)
                     ipAddrInt = dataJson["i"]
                     ipAddrExt = flask.request.remote_addr
+                    if (flask.request.headers.get("X-Forwarded-For")):
+                         ipAddrExt = flask.request.headers.get("X-Forwarded-For")
                     username = dataJson["u"]
                     hostname = dataJson["h"]
                     osBuild = dataJson["o"]
@@ -125,6 +127,8 @@ def flaskListener(xor_key):
                 # Update the external IP address if it changed
                 if not np.ipAddrExt == flask.request.remote_addr:
                     np.ipAddrExt = flask.request.remote_addr
+                    if (flask.request.headers.get("X-Forwarded-For")):
+                         np.ipAddrExt = flask.request.headers.get("X-Forwarded-For")
 
                 if np.pendingTasks:
                     # There is a task - check in to update 'last seen' and return the task

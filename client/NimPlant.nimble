@@ -11,6 +11,7 @@ skipDirs      = @["bin", "commands", "util"]
 requires "nim >= 1.6.10"
 requires "nimcrypto >= 0.5.4"
 requires "parsetoml >= 0.7.0"
+requires "pixie >= 5.0.6"
 requires "ptr_math >= 0.3.0"
 requires "puppy >= 2.0.3"
 requires "winim >= 3.9.0"

@@ -209,6 +209,7 @@ pwd               Get the current working directory.
 reg               [query|add] [path] <key> <value> Query or modify the registry. New values will be added as REG_SZ.
 rm                [file] Remove a file or directory.
 run               [binary] <arguments> Run a binary from disk. Returns output but blocks NimPlant while running.
+screenshot        Take a screenshot of the user's screen.
 select            [id] Select another NimPlant.
 shell             [command] Execute a shell command.
 shinject          [targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation.

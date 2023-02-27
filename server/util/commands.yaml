@@ -186,7 +186,7 @@
       Takes a remote file path as an argument, and an optional local file path on the NimPlant server as a second argument.
       If a local file path is specified, the downloaded file will be saved to that path on the NimPlant server. 
       If no local file path is specified, the downloaded file will be saved in 'server/downloads/server-[server-guid]',
-      where it will be accessible via the web GUI.
+      where it will be accessible in the 'Downloads' tab of the web GUI.
 
       Will download the specified file from the target system to the NimPlant server. 
 
@@ -365,7 +365,17 @@
 
       CAUTION: The NimPlant session will be blocked while the binary is running. Take care triggering any long-running binaries!
       Additionally, the binary will be executed as a child process of the NimPlant process. Be mindful of the OPSEC implications of this.
-      
+
+  - command: screenshot
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "Take a screenshot of the user's screen."
+    help: |
+      Takes no arguments.
+
+      Will take a screenshot of the user's screen which will be saved in 'server/downloads/server-[server-guid]',
+      where it will be accessible via the 'Downloads' tab in the web GUI.
 
   - command: shell
     server_command: False

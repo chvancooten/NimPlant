@@ -15,10 +15,14 @@ def cls():
 
 # Timestamp function
 timestampFormat = "%d/%m/%Y %H:%M:%S"
+filenameSafeTimestampFormat = "%d-%m-%Y_%H-%M-%S"
 
 
-def timestamp():
-    return datetime.now().strftime(timestampFormat)
+def timestamp(filename_safe=False):
+    if filename_safe:
+        return datetime.now().strftime(filenameSafeTimestampFormat)
+    else:
+        return datetime.now().strftime(timestampFormat)
 
 
 # Loop to check for late checkins (can be infinite - runs as separate thread)
@@ -498,6 +502,22 @@ def downloadFile(np, args, raw_command):
 
     guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint("Staged download command for NimPlant.", np.guid, taskGuid=guid)
+
+
+# Handle post-processing of the 'screenshot' command
+# This function is called based on the blob header b64(gzip(screenshot)), so we don't need to verify the format
+def processScreenshot(sc_blob) -> str:
+    from .nimplant import np_server
+    from gzip import decompress
+
+    sc_blob = decompress(base64.b64decode(sc_blob))
+
+    path = f"server/downloads/server-{np_server.guid}/screenshot_{timestamp(filename_safe=True)}.png"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(sc_blob)
+
+    return f"Screenshot saved to '{path}'."
 
 
 # Get last lines of file

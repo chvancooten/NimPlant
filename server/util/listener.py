@@ -282,9 +282,13 @@ def flaskListener(xor_key):
         if np is not None:
             if userAgent == flask.request.headers.get("User-Agent"):
                 res = json.loads(decryptData(data["data"], np.cryptKey))
-                np.setTaskResult(
-                    res["guid"], base64.b64decode(res["result"]).decode("utf-8")
-                )
+                data = base64.b64decode(res["result"]).decode("utf-8")
+
+                # Handle Base64-encoded, gzipped PNG file (screenshot)
+                if data.startswith("H4sIAAAA"):
+                    data = processScreenshot(data)
+
+                np.setTaskResult(res["guid"], data)
                 return flask.jsonify(status="OK"), 200
             else:
                 notifyBadRequest(

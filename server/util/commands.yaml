@@ -393,10 +393,10 @@
   - command: shinject
     server_command: False
     risky_command: True
-    gui_command: False
-    description: "[targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation."
+    gui_command: True
+    description: "(GUI) [targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation."
     help: |
-      [RISKY COMMAND]
+      [RISKY COMMAND, GUI COMMAND]
       Takes two mandatory arguments: the target process ID and the local path to the shellcode file.
 
       This command loads raw shellcode from a local file and injects it into the specified process's memory.

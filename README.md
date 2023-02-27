@@ -212,7 +212,7 @@ run               [binary] <arguments> Run a binary from disk. Returns output bu
 screenshot        Take a screenshot of the user's screen.
 select            [id] Select another NimPlant.
 shell             [command] Execute a shell command.
-shinject          [targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation.
+shinject          (GUI) [targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation.
 sleep             [sleeptime] <jitter%> Change the sleep time of the current NimPlant.
 upload            (GUI) [localfilepath] <remotefilepath> Upload a file from the NimPlant server to the victim machine.
 wget              [url] <remotefilepath> Download a file to disk remotely.

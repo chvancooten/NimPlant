@@ -1,10 +1,11 @@
 import { Autocomplete, Button, Group, ScrollArea, Stack } from "@mantine/core";
-import { FaTerminal } from "react-icons/fa";
 import { consoleToText, getCommands } from "../modules/nimplant";
+import { FaTerminal } from "react-icons/fa";
 import { getHotkeyHandler, useFocusTrap, useMediaQuery } from "@mantine/hooks";
-import React, { useEffect, useRef, useState } from "react";
-import InlineExecuteModal from "./modals/Cmd-Inline-Execute";
 import ExecuteAssemblyModal from "./modals/Cmd-Execute-Assembly";
+import InlineExecuteModal from "./modals/Cmd-Inline-Execute";
+import React, { useEffect, useRef, useState } from "react";
+import ShinjectModal from "./modals/Cmd-Shinject";
 import UploadModal from "./modals/Cmd-Upload";
 
 type ConsoleType = {
@@ -30,8 +31,9 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
   const [dropdownOpened, setDropdownOpened] = useState(false);
   const [enteredCommand, setEnteredCommand] = useState('');
   const [historyPosition, setHistoryPosition] = useState(0);
-  const [modalInlineExecOpened, setModalInlineExecOpened] = useState(false);
   const [modalExecAsmOpened, setModalExecAsmOpened] = useState(false);
+  const [modalInlineExecOpened, setModalInlineExecOpened] = useState(false);
+  const [modalshinjectOpened, setModalShinjectOpened] = useState(false);
   const [modalUploadOpened, setModalUploadOpened] = useState(false);
 
   // Define dynamic autocomplete options
@@ -69,11 +71,14 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
     else if (dropdownOpened) return;
 
     // Handle 'modal commands'
-    if (enteredCommand === 'inline-execute') {
+    if (enteredCommand === 'execute-assembly') {
+      setModalExecAsmOpened(true);
+    }
+    else if (enteredCommand === 'inline-execute') {
       setModalInlineExecOpened(true);
     }
-    else if (enteredCommand === 'execute-assembly') {
-      setModalExecAsmOpened(true);
+    else if (enteredCommand === 'shinject') {
+      setModalShinjectOpened(true);
     }
     else if (enteredCommand === 'upload') {
       setModalUploadOpened(true);
@@ -148,8 +153,9 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
       })}
     >
           {/* Modals */}
-          <InlineExecuteModal modalOpen={modalInlineExecOpened} setModalOpen={setModalInlineExecOpened} npGuid={guid} />
           <ExecuteAssemblyModal modalOpen={modalExecAsmOpened} setModalOpen={setModalExecAsmOpened} npGuid={guid} />
+          <InlineExecuteModal modalOpen={modalInlineExecOpened} setModalOpen={setModalInlineExecOpened} npGuid={guid} />
+          <ShinjectModal modalOpen={modalshinjectOpened} setModalOpen={setModalShinjectOpened} npGuid={guid} />
           <UploadModal modalOpen={modalUploadOpened} setModalOpen={setModalUploadOpened} npGuid={guid} />
         
           {/* Code view window */}

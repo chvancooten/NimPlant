@@ -1,5 +1,4 @@
 __pycache__/
-.logs
 .vscode
 .xorkey
 *.bin
@@ -10,4 +9,5 @@ __pycache__/
 bin/
 config.toml
 server/downloads/
+server/logs/
 server/uploads/

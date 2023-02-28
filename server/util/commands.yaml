@@ -186,7 +186,7 @@
       Takes a remote file path as an argument, and an optional local file path on the NimPlant server as a second argument.
       If a local file path is specified, the downloaded file will be saved to that path on the NimPlant server. 
       If no local file path is specified, the downloaded file will be saved in 'server/downloads/server-[server-guid]',
-      where it will be accessible via the web GUI.
+      where it will be accessible in the 'Downloads' tab of the web GUI.
 
       Will download the specified file from the target system to the NimPlant server. 
 
@@ -334,14 +334,13 @@
     description: "[query|add] [path] <key> <value> Query or modify the registry. New values will be added as REG_SZ."
     help: |
       Takes two mandatory arguments: either the 'query' or 'add' command, and a path to the registry key.
-      Optionally, takes a key and value to add to the registry if the 'add' command has been selected.
+      Optionally, takes a key to read or write and value to write to the registry.
+      If no key is provided for the 'query' command, it will return all keys and values for the specified path.
 
-      Will query or modify the registry on the target system. If the query command is used, will return the value of the specified key.
-      If the add command is used, will add the specified key and value to the registry.
+      Only supports REG_SZ (string) values for now.
 
-      Only supports the HKCU/HKLM registry hives for now, and only supports adding REG_SZ values.
-
-      Example: 'reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run inconspicuous calc.exe'
+      Examples: 'reg query HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run'
+                'reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run inconspicuous calc.exe'
 
   - command: rm
     server_command: False
@@ -366,7 +365,17 @@
 
       CAUTION: The NimPlant session will be blocked while the binary is running. Take care triggering any long-running binaries!
       Additionally, the binary will be executed as a child process of the NimPlant process. Be mindful of the OPSEC implications of this.
-      
+
+  - command: screenshot
+    server_command: False
+    risky_command: False
+    gui_command: False
+    description: "Take a screenshot of the user's screen."
+    help: |
+      Takes no arguments.
+
+      Will take a screenshot of the user's screen which will be saved in 'server/downloads/server-[server-guid]',
+      where it will be accessible via the 'Downloads' tab in the web GUI.
 
   - command: shell
     server_command: False
@@ -384,10 +393,10 @@
   - command: shinject
     server_command: False
     risky_command: True
-    gui_command: False
-    description: "[targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation."
+    gui_command: True
+    description: "(GUI) [targetpid] [localfilepath] Load raw shellcode from a file and inject it into the specified process's memory space using dynamic invocation."
     help: |
-      [RISKY COMMAND]
+      [RISKY COMMAND, GUI COMMAND]
       Takes two mandatory arguments: the target process ID and the local path to the shellcode file.
 
       This command loads raw shellcode from a local file and injects it into the specified process's memory.

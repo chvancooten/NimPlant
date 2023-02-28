@@ -133,7 +133,7 @@ Once you have your binaries ready, you can spin up your NimPlant server! No addi
 - If you are running your NimPlant server externally from the machine where binaries are compiled, make sure that both `config.toml` and `.xorkey` match. If not, NimPlant will not be able to connect.
 - The web frontend or API do not support authentication, so **do _NOT_ expose the frontend port to any untrusted networks without a secured reverse proxy!**
 - If NimPlant cannot connect to a server or loses connection, it will retry 5 times with an exponential backoff time before attempting re-registration. If it fails to register 5 more times (same backoff logic), it will kill itself. The backoff triples the sleep time on each failed attempt. For example, if the sleep time is 10 seconds, it will wait 10, then 30 (3^1 * 10), then 90 (3^2 * 10), then 270 (3^3 * 10), then 810 seconds before giving up (these parameters are hardcoded but can be changed in `client/NimPlant.nim`).
-- Logs are stored in the `server/.logs` directory. Each server instance creates a new log folder, and logs are split per console/nimplant session. Downloads and uploads (including files uploaded via the web GUI) are stored in the `server/uploads` and `server/downloads` directories respectively.
+- Logs are stored in the `server/logs` directory. Each server instance creates a new log folder, and logs are split per console/nimplant session. Downloads and uploads (including files uploaded via the web GUI) are stored in the `server/uploads` and `server/downloads` directories respectively.
 - Nimplant and server details are stored in an SQLite database at `server/nimplant.db`. This data is also used to recover Nimplants after a server restart.
 - Logs, uploaded/downloaded files, and the database can be cleaned up by running `NimPlant.py` with the `cleanup` flag. Caution: This will purge everything, so make sure to back up what you need first!
 
@@ -261,7 +261,7 @@ There are many reasons why Nimplant may fail to compile or run. If you encounter
 
 - Ensure you followed the steps as described in the 'Installation' section above, double check that all dependencies are installed and the versions match
 - Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the `chvancooten/nimbuild` docker container to rule out any dependency issues
-- Check the logs in the `server/.logs` directory for any errors
+- Check the logs in the `server/logs` directory for any errors
 - Try the `nim-debug` compilation mode to compile with console and debug messages (.exe only) to see if any error messages are returned
 - Try compiling from another OS or with another toolchain to see if the same error occurs
 - If all of the above fails, submit an issue. Make sure to include the appropriate build information (OS, nim/python versions, dependency versions) and the outcome of the troubleshooting steps above. **Incomplete issues may be closed without notice.**

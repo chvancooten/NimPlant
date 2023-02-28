@@ -42,7 +42,7 @@ def log(message, target=None):
 
     logDir = os.path.abspath(
         os.path.join(
-            os.path.dirname(sys.argv[0]), "server", ".logs", f"server-{np_server.name}"
+            os.path.dirname(sys.argv[0]), "server", "logs", f"server-{np_server.name}"
         )
     )
     os.makedirs(logDir, exist_ok=True)
@@ -545,7 +545,7 @@ def tailNimPlantLog(np=None, lines=100):
 
     logDir = os.path.abspath(
         os.path.join(
-            os.path.dirname(sys.argv[0]), "server", ".logs", f"server-{np_server.name}"
+            os.path.dirname(sys.argv[0]), "server", "logs", f"server-{np_server.name}"
         )
     )
 

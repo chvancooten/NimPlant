@@ -251,10 +251,10 @@ if __name__ == "__main__":
             if input().lower() == "y":
                 print("Cleaning up...")
 
-                rmtree("server/downloads")
-                rmtree("server/uploads")
-                rmtree("server/.logs")
                 os.remove("server/nimplant.db")
+                rmtree("server/downloads")
+                rmtree("server/logs")
+                rmtree("server/uploads")
 
                 print("Cleaned up NimPlant server files!")
             else:

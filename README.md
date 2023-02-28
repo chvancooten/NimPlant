@@ -16,9 +16,9 @@ _By **Cas van Cooten** ([@chvancooten](https://twitter.com/chvancooten)), with s
 - _Kadir Yamamoto ([@yamakadi](https://github.com/yamakadi)) for the design work, initial Vue.JS front-end and rusty nimplant, part of an [older branch](https://github.com/chvancooten/NimPlant/tree/rust-implant-and-old-ui) (unmaintained)_
 - _Mauricio Velazco ([@mvelazco](https://twitter.com/mvelazco)), Dylan Makowski ([@AnubisOnSec](https://twitter.com/AnubisOnSec)), Andy Palmer ([@pivotal8ytes](github.com/pivotal8ytes)), Medicus Riddick ([@retsdem22](https://twitter.com/retsdem22)), Spencer Davis ([@nixbyte](https://twitter.com/nixbyte)), and Florian Roth ([@cyb3rops](https://twitter.com/cyb3rops)), for their efforts in testing the pre-release and contributing [detections](https://github.com/chvancooten/NimPlant/tree/main/detection)_
 
-If NimPlant has been useful to you and/or you like my work, your support is always welcome:
+If NimPlant has been useful to you and/or you like my work in general, your support is very welcome:
 
-[![Docker Image Size Badge](https://img.shields.io/badge/%F0%9F%8D%BA-Buy%20me%20a%20beer-orange)](https://www.buymeacoffee.com/chvancooten)
+[![Sponsor on GitHub](https://img.shields.io/badge/%F0%9F%A5%B0-Sponsor%20me%20on%20github-red)](https://github.com/sponsors/chvancooten)
 
 # Feature Overview
 

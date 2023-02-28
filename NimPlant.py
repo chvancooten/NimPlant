@@ -57,6 +57,7 @@ def print_usage():
     Acceptable commands:
         compile [exe / exe-selfdelete / dll / raw / all] <nim / nim-debug> <rotatekey>
         server <server name>
+        cleanup
     """
     )
 
@@ -238,6 +239,26 @@ if __name__ == "__main__":
                 main(xor_key, name)
             except:
                 main(xor_key, "")
+
+        elif sys.argv[1] == "cleanup":
+            from shutil import rmtree
+
+            # Confirm if the user is sure they want to delete all files
+            print("WARNING: This will delete ALL NimPlant server data:")
+            print("         uploads/downloads, logs, and the database!")
+            print("         Are you sure you want to continue? (y/n):", end=" ")
+
+            if input().lower() == "y":
+                print("Cleaning up...")
+
+                rmtree("server/downloads")
+                rmtree("server/uploads")
+                rmtree("server/.logs")
+                os.remove("server/nimplant.db")
+
+                print("Cleaned up NimPlant server files!")
+            else:
+                print("Aborting...")
 
         else:
             print_usage()

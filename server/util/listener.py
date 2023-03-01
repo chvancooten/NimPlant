@@ -24,7 +24,7 @@ try:
     if listenerType == "HTTPS":
         sslCertPath = config["listener"]["sslCertPath"]
         sslKeyPath = config["listener"]["sslKeyPath"]
-    b_ident = b"789CF3CBCC0DC849CC2B51703652084E2D2A4B2D02003B5C0650"
+    ident = config["listener"]["serverHeader"]
 except KeyError as e:
     nimplantPrint(
         f"ERROR: Could not load configuration, check your 'config.toml': {str(e)}"
@@ -33,7 +33,6 @@ except KeyError as e:
 
 # Init flask app and surpress Flask/Gevent logging and startup messages
 app = flask.Flask(__name__)
-ident = decompress(base64.b16decode(b_ident)).decode("utf-8")
 
 # Define a function to notify users of unknown or erroneous requests
 def notifyBadRequest(src, method, path, user_agent, reason=None):

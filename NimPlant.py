@@ -252,15 +252,26 @@ if __name__ == "__main__":
                 print("Cleaning up...")
 
                 try:
-                    os.remove("server/nimplant.db")
+                    # Clean up files
+                    for filepath in ["server/nimplant.db"]:
+                        if os.path.exists(filepath) and os.path.isfile(filepath):
+                            os.remove(filepath)
+
+                    # Clean up directories
+                    for dirpath in [
+                        "server/downloads",
+                        "server/logs",
+                        "server/uploads",
+                    ]:
+                        if os.path.exists(dirpath) and os.path.isdir(dirpath):
+                            rmtree(dirpath)
+
+                    print("Cleaned up NimPlant server files!")
                 except OSError:
-                    pass
+                    print(
+                        "ERROR: Could not clean up all NimPlant server files. Do you have the right privileges?"
+                    )
 
-                rmtree("server/downloads", ignore_errors=True)
-                rmtree("server/logs", ignore_errors=True)
-                rmtree("server/uploads", ignore_errors=True)
-
-                print("Cleaned up NimPlant server files!")
             else:
                 print("Aborting...")
 

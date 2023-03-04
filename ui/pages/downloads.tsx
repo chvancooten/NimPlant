@@ -18,6 +18,9 @@ const ServerInfo: NextPage = () => {
           Filename
         </Text>
         <Text size="lg">
+          Nimplant
+        </Text>
+        <Text size="lg">
           Size
         </Text>
         <Text size="lg">

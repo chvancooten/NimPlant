@@ -479,7 +479,9 @@ def downloadFile(np, args, raw_command):
     if len(args) == 2:
         filePath = args[1]
         fileName = filePath.replace("/", "\\").split("\\")[-1]
-        localPath = f"server/downloads/server-{np_server.guid}/{fileName}"
+        localPath = (
+            f"server/downloads/server-{np_server.guid}/nimplant-{np.guid}/{fileName}"
+        )
     elif len(args) == 3:
         filePath = args[1]
         localPath = args[2]

@@ -20,7 +20,7 @@ function DownloadList() {
   return (
   <>
   {downloads.map((file: any, index: number) => (
-    <Group key={index} py="xl" grow
+    <Group key={index} py="md" grow
     sx={(theme) => ({ 
       '&:not(:last-child)': {
         borderBottom: `1px solid ${theme.colors.gray[1]}`,
@@ -36,7 +36,7 @@ function DownloadList() {
         <Text size="lg" color="dark">
           {file.name}
         </Text>
-        <Stack pl={5} spacing={5}>
+        <Stack pl={5} spacing={0}>
           <Text size="lg" color="dark">
             {file.nimplant}
           </Text>

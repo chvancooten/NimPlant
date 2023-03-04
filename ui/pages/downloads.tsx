@@ -5,8 +5,7 @@ import DownloadList from '../components/DownloadList'
 import TitleBar from '../components/TitleBar'
 import type { NextPage } from 'next'
 
-// Tabbed page for showing server information
-const ServerInfo: NextPage = () => {
+const Downloads: NextPage = () => {
   const largeScreen = useMediaQuery('(min-width: 800px)')
 
   return (
@@ -35,4 +34,4 @@ const ServerInfo: NextPage = () => {
     </>
   )
 }
-export default ServerInfo
+export default Downloads

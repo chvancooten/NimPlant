@@ -503,13 +503,13 @@ def downloadFile(np, args, raw_command):
 
 # Handle post-processing of the 'screenshot' command
 # This function is called based on the blob header b64(gzip(screenshot)), so we don't need to verify the format
-def processScreenshot(sc_blob) -> str:
+def processScreenshot(np, sc_blob) -> str:
     from .nimplant import np_server
     from gzip import decompress
 
     sc_blob = decompress(base64.b64decode(sc_blob))
 
-    path = f"server/downloads/server-{np_server.guid}/screenshot_{timestamp(filename_safe=True)}.png"
+    path = f"server/downloads/server-{np_server.guid}/nimplant-{np.guid}/screenshot_{timestamp(filename_safe=True)}.png"
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
         f.write(sc_blob)

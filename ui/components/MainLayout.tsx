@@ -61,7 +61,7 @@ function MainLayout({ children }: ChildrenProps) {
         }
 
         navbar={
-          <Navbar p="md" hiddenBreakpoint="sm" hidden={!sidebarOpened} width={{ sm: 215, lg: 300 }}
+          <Navbar p="md" hiddenBreakpoint="sm" hidden={!sidebarOpened} width={{ sm: 220, lg: 300 }}
             styles={{ root: { background: theme.colors.rose[7], color: 'white' }}}
             onClick={() => setSidebarOpened(false)}
           >

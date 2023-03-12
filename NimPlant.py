@@ -137,9 +137,7 @@ def compile_nim(binary_type, xor_key, debug=False):
 
     # Construct compilation command
     if binary_type == "exe" or binary_type == "exe-selfdelete" or binary_type == "dll":
-        compile_command = (
-            f"nim c --hints:off --warnings:off -d:xor_key={xor_key} -d:release -d:strip"
-        )
+        compile_command = f"nim c --hints:off --warnings:off -d:xor_key={xor_key} -d:release -d:strip -d:noRes"
 
         if debug:
             compile_command = compile_command + " -d:verbose"

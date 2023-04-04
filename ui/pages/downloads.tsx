@@ -5,8 +5,7 @@ import DownloadList from '../components/DownloadList'
 import TitleBar from '../components/TitleBar'
 import type { NextPage } from 'next'
 
-// Tabbed page for showing server information
-const ServerInfo: NextPage = () => {
+const Downloads: NextPage = () => {
   const largeScreen = useMediaQuery('(min-width: 800px)')
 
   return (
@@ -16,6 +15,9 @@ const ServerInfo: NextPage = () => {
       <Group pl={largeScreen ? 25 : 10} mb="lg" grow sx={(theme) => ({ color: theme.colors.gray[5] })}>
         <Text size="lg">
           Filename
+        </Text>
+        <Text size="lg">
+          Nimplant
         </Text>
         <Text size="lg">
           Size
@@ -32,4 +34,4 @@ const ServerInfo: NextPage = () => {
     </>
   )
 }
-export default ServerInfo
+export default Downloads

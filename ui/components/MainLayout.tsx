@@ -53,7 +53,7 @@ function MainLayout({ children }: ChildrenProps) {
                 <Box style={{  alignSelf: "flex-end", marginBottom: "10px" }}>
                   <Space w="xs" />
                   <Badge component="a" href="https://github.com/chvancooten/nimplant" target="_blank" variant="light" color="gray"
-                  style={{textTransform: 'lowercase',  cursor: 'pointer' }} >v1.1</Badge>
+                  style={{textTransform: 'lowercase',  cursor: 'pointer' }} >v1.2</Badge>
                 </Box>
               </MediaQuery>
             </div>
@@ -61,7 +61,7 @@ function MainLayout({ children }: ChildrenProps) {
         }
 
         navbar={
-          <Navbar p="md" hiddenBreakpoint="sm" hidden={!sidebarOpened} width={{ sm: 215, lg: 300 }}
+          <Navbar p="md" hiddenBreakpoint="sm" hidden={!sidebarOpened} width={{ sm: 220, lg: 300 }}
             styles={{ root: { background: theme.colors.rose[7], color: 'white' }}}
             onClick={() => setSidebarOpened(false)}
           >

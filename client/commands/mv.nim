@@ -1,4 +1,5 @@
-from os import dirExists, moveFile, moveDir, splitPath, `/`
+from os import dirExists, moveFile, splitPath, `/`
+from ../util/winUtils import moveDir
 from strutils import join
 
 # Move a file or directory

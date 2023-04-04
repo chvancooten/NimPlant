@@ -1,5 +1,7 @@
-from os import copyDir, copyFile, copyFileToDir, dirExists, splitPath, `/`
+from ../util/winUtils import copyDir
+from os import dirExists, splitPath, `/`
 from strutils import join
+from winim/lean import CopyFileA, LPCSTR, FALSE, winstrConverterStringToPtrChar
 
 # Copy files or directories
 proc cp*(args : varargs[string]) : string =
@@ -23,8 +25,8 @@ proc cp*(args : varargs[string]) : string =
 
     # Copying a file
     elif dirExists(destination):
-        copyFileToDir(source, destination)
+        CopyFileA(source, destination/splitPath(source).tail, FALSE)
     else:
-        copyFile(source, destination)
+        CopyFileA(source, destination, FALSE)
     
     result = obf("Copied '") & source & obf("' to '") & destination & obf("'.")

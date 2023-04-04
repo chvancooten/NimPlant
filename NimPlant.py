@@ -137,9 +137,7 @@ def compile_nim(binary_type, xor_key, debug=False):
 
     # Construct compilation command
     if binary_type == "exe" or binary_type == "exe-selfdelete" or binary_type == "dll":
-        compile_command = (
-            f"nim c --hints:off --warnings:off -d:xor_key={xor_key} -d:release -d:strip"
-        )
+        compile_command = f"nim c --hints:off --warnings:off -d:xor_key={xor_key} -d:release -d:strip -d:noRes"
 
         if debug:
             compile_command = compile_command + " -d:verbose"
@@ -251,12 +249,27 @@ if __name__ == "__main__":
             if input().lower() == "y":
                 print("Cleaning up...")
 
-                os.remove("server/nimplant.db")
-                rmtree("server/downloads")
-                rmtree("server/logs")
-                rmtree("server/uploads")
+                try:
+                    # Clean up files
+                    for filepath in ["server/nimplant.db"]:
+                        if os.path.exists(filepath) and os.path.isfile(filepath):
+                            os.remove(filepath)
 
-                print("Cleaned up NimPlant server files!")
+                    # Clean up directories
+                    for dirpath in [
+                        "server/downloads",
+                        "server/logs",
+                        "server/uploads",
+                    ]:
+                        if os.path.exists(dirpath) and os.path.isdir(dirpath):
+                            rmtree(dirpath)
+
+                    print("Cleaned up NimPlant server files!")
+                except OSError:
+                    print(
+                        "ERROR: Could not clean up all NimPlant server files. Do you have the right privileges?"
+                    )
+
             else:
                 print("Aborting...")
 

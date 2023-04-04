@@ -26,7 +26,7 @@ when defined risky:
 # Parse the configuration at compile-time
 let CONFIG : Table[string, string] = parseConfig()
 
-const version: string = "NimPlant v1.1"
+const version: string = "NimPlant v1.2"
 proc runNp() : void =
     echo version
 

@@ -204,6 +204,7 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
             value={enteredCommand}
             onKeyDown={getHotkeyHandler([
               ['Enter', handleSubmit],
+              ['Tab', () => autocompleteOptions.length > 0 && setEnteredCommand(autocompleteOptions[0])],
               ['ArrowUp', () => handleHistory(-1)],
               ['ArrowDown', () => handleHistory(1)],
             ])}

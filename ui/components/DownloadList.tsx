@@ -1,10 +1,11 @@
 import { FaRegMeh } from 'react-icons/fa'
-import { formatBytes, formatTimestamp, getDownloads } from '../modules/nimplant'
-import { Text, Group } from '@mantine/core'
+import { formatBytes, formatTimestamp, getDownloads, getNimplants } from '../modules/nimplant'
+import { Text, Group, Stack } from '@mantine/core'
 import Link from 'next/link'
 
 function DownloadList() {
   const { downloads, downloadsLoading, downloadsError } = getDownloads()
+  const {nimplants, nimplantsLoading, nimplantsError} = getNimplants()
 
 
   // Check data length and return placeholder if no downloads are present
@@ -19,7 +20,7 @@ function DownloadList() {
   return (
   <>
   {downloads.map((file: any, index: number) => (
-    <Group key={index} py="xl" grow
+    <Group key={index} py="md" grow
     sx={(theme) => ({ 
       '&:not(:last-child)': {
         borderBottom: `1px solid ${theme.colors.gray[1]}`,
@@ -30,11 +31,23 @@ function DownloadList() {
       }
     })}
   >
-      <Link href={`/api/downloads/${file.name}`} passHref style={{ textDecoration: 'none' }}>
+      <Link href={`/api/downloads/${file.nimplant}/${file.name}`} passHref style={{ textDecoration: 'none' }}>
         <Group grow>
         <Text size="lg" color="dark">
           {file.name}
         </Text>
+        <Stack pl={5} spacing={0}>
+          <Text size="lg" color="dark">
+            {file.nimplant}
+          </Text>
+          <Text size="md" color="gray">
+            {
+              nimplants && nimplants.find((nimplant: any) => nimplant.guid === file.nimplant)?.username 
+              + '@' +
+              nimplants.find((nimplant: any) => nimplant.guid === file.nimplant)?.hostname
+            }
+          </Text>
+        </Stack>
         <Text pl={10} size="lg" color="gray">
           {formatBytes(file.size)}
         </Text>

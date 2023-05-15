@@ -40,6 +40,7 @@ If NimPlant has been useful to you and/or you like my work in general, your supp
 - Install required packages using the Nimble package manager (`cd client; nimble install -d`).
 - Install `requirements.txt` from the server folder (`pip3 install -r server/requirements.txt`).
 - If you're on Linux or MacOS, install the `mingw` toolchain for your platform (`brew install mingw-w64` or `apt install mingw-w64`).
+- If you're on ArchLinux specifically, modify your Mingw config as per [this gist](https://gist.github.com/tothi/1f452e0466070db5921135ab312749fc) (thanks [@tothi](https://github.com/tothi)!).
 
 ## Getting Started
 

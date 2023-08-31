@@ -5,6 +5,7 @@ from zlib import compress
 import base64
 import os, hashlib, json, sys
 
+
 # Clear screen
 def cls():
     if os.name == "nt":
@@ -53,7 +54,7 @@ def log(message, target=None):
         logFile = f"console.log"
 
     logFilePath = os.path.join(logDir, logFile)
-    with open(logFilePath, "a") as f:
+    with open(logFilePath, "a", encoding="utf-8") as f:
         f.write(message + "\n")
 
 

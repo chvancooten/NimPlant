@@ -24,10 +24,10 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install Nim 1.6.10
+    - name: Install Nim 1.6.12
       uses: iffy/install-nim@v4
       with:
-        version: binary:1.6.10
+        version: binary:1.6.12
 
     - name: Install Python dependencies for NimPlant
       run: pip install -r ./server/requirements.txt

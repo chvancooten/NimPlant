@@ -1,12 +1,12 @@
 # This is a Nim-Port of the Ekko Sleep obfuscation by @C5pider, original work: https://github.com/Cracked5pider/Ekko
 # Ported to Nim by Fabian Mosch, @ShitSecure (S3cur3Th1sSh1t)
 
-# TODO: Modify to work with .dll/.bin compilation type, see: https://mez0.cc/posts/vulpes-obfuscating-memory-regions/#Sleeping_with_Timers
 # TODO: Check which exact functions are needed to minimize the imports for winim
 import winim/lean
 import ptr_math
 import std/random
 import strenc
+import cfg
 
 type
   USTRING* {.bycopy.} = object
@@ -75,6 +75,11 @@ proc ekkoObf*(st: int): VOID =
   Img.Buffer = ImageBase
   Img.Length = ImageSize
   Img.MaximumLength = ImageSize
+
+  # Add NtContinue as a valid call target for CFG
+  NtContinue = GetProcAddress(GetModuleHandleA(obf("ntdll")), obf("NtContinue"))
+  discard evadeCFG(NtContinue)
+
   if CreateTimerQueueTimer(addr(hNewTimer), hTimerQueue, cast[WAITORTIMERCALLBACK](RtlCaptureContext),
                           addr(CtxThread), 0, 0, WT_EXECUTEINTIMERTHREAD):
     WaitForSingleObject(hEvent, 0x32)

@@ -1,6 +1,8 @@
-from nativesockets import getHostName, gethostbyname
+from nativesockets import gethostbyname
 from os import getCurrentProcessId, splitPath, getAppFilename, createDir, walkDir, splitPath, pcDir, `/`, removeDir
-from winim/lean import CopyFileA, FALSE, ULONG, winstrConverterStringToPtrChar
+from winim/lean import CopyFileA, GetComputerNameW, winstrConverterStringToPtrChar
+from winim/utils import `&`
+import winim/inc/[windef, winbase]
 import ../commands/whoami
 import strenc
 
@@ -61,7 +63,15 @@ proc getUsername*() : string =
 
 # Get the hostname
 proc getHost*() : string = 
-    result = getHostName()
+    var 
+        buf : array[257, TCHAR]
+        lpBuf :  LPWSTR = addr buf[0]
+        pcbBuf : DWORD = int32(len(buf))
+        
+    discard GetComputerNameW(lpBuf, &pcbBuf)
+    for character in buf:
+        if character == 0: break
+        result.add(char(character))
 
 # Get the internal IP
 proc getIntIp*() : string =

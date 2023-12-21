@@ -53,7 +53,7 @@ function MainLayout({ children }: ChildrenProps) {
                 <Box style={{  alignSelf: "flex-end", marginBottom: "10px" }}>
                   <Space w="xs" />
                   <Badge component="a" href="https://github.com/chvancooten/nimplant" target="_blank" variant="light" color="gray"
-                  style={{textTransform: 'lowercase',  cursor: 'pointer' }} >v1.2</Badge>
+                  style={{textTransform: 'lowercase',  cursor: 'pointer' }} >v1.3</Badge>
                 </Box>
               </MediaQuery>
             </div>

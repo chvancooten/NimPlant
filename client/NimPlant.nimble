@@ -1,6 +1,6 @@
 # Package information
 # NimPlant isn't really a package, Nimble is mainly used for easy dependency management
-version       = "1.2"
+version       = "1.3"
 author        = "Cas van Cooten"
 description   = "A Nim-based, first-stage C2 implant"
 license       = "MIT"

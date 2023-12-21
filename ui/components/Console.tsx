@@ -39,30 +39,6 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
   // Define dynamic autocomplete options
   const {commandList, commandListLoading, commandListError} = getCommands()
 
-  const getCompletions = (): string[] => {
-    if (enteredCommand === '') return [];
-
-    var completionOptions: string[] = [];
-
-    // Add base command completions
-    if (!commandListLoading && !commandListError) {
-      completionOptions = commandList.map((a:any) => a['command'])
-    }
-    
-    // Add history completions, ignore duplicates
-    Object.keys(consoleData).forEach((key) => {
-      if (consoleData[key]['taskFriendly'] !== null) {
-        var value : string = consoleData[key]['taskFriendly']
-        if (!completionOptions.includes(value)){
-          completionOptions.push(value)
-        }
-        
-      }
-    })
-
-    return completionOptions.filter((o) => o.startsWith(enteredCommand) && o != enteredCommand);
-  }
-
   // Define a utility function to handle command and clear the input field
   const handleSubmit = () => {
     if (inputFunction === undefined || guid === undefined) return;
@@ -142,8 +118,33 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
 
   // Recalculate autocomplete options
   useEffect(() => {
+
+    const getCompletions = (): string[] => {
+      if (enteredCommand === '') return [];
+  
+      var completionOptions: string[] = [];
+  
+      // Add base command completions
+      if (!commandListLoading && !commandListError) {
+        completionOptions = commandList.map((a:any) => a['command'])
+      }
+      
+      // Add history completions, ignore duplicates
+      Object.keys(consoleData).forEach((key) => {
+        if (consoleData[key]['taskFriendly'] !== null) {
+          var value : string = consoleData[key]['taskFriendly']
+          if (!completionOptions.includes(value)){
+            completionOptions.push(value)
+          }
+          
+        }
+      })
+  
+      return completionOptions.filter((o) => o.startsWith(enteredCommand) && o != enteredCommand);
+    }
+
     setAutocompleteOptions(getCompletions());
-  }, [enteredCommand, commandListLoading, consoleData])
+  }, [enteredCommand, commandListLoading, commandListError, consoleData, commandList])
 
   return (
     <Stack ml={largeScreen ? "xl" : "lg"} mr={largeScreen ? 40 : 35} mt="xl" spacing="xs"

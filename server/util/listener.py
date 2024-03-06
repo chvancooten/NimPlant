@@ -1,3 +1,5 @@
+from ssl import PROTOCOL_TLSv1, CERT_NONE, PROTOCOL_TLSv1_2
+
 from .config import config
 from .crypto import *
 from .func import *
@@ -336,6 +338,8 @@ def flaskListener(xor_key):
                 app,
                 keyfile=sslKeyPath,
                 certfile=sslCertPath,
+                ssl_version=PROTOCOL_TLSv1_2,
+                cert_reqs=CERT_NONE,
                 log=None,
             )
             https_server.serve_forever()

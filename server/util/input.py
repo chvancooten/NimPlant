@@ -5,7 +5,7 @@ if os.name == "posix":
     import readline
     from .commands import getCommandList
 
-    commands = getCommandList()
+    commands = get_command_list()
 
     def list_folder(path):
         if path.startswith(os.path.sep):
@@ -42,9 +42,9 @@ else:
     from prompt_toolkit.contrib.completers.system import SystemCompleter
     from prompt_toolkit.shortcuts import CompleteStyle
 
-    from .commands import getCommandList
+    from .commands import get_command_list
 
-    commands = getCommandList()
+    commands = get_command_list()
 
     # Complete system commands and paths
     systemCompleter = SystemCompleter()
@@ -57,12 +57,13 @@ else:
 
     session = PromptSession()
 
+
 # User prompt
 def promptUserForCommand():
     from .nimplant import np_server
-    from .commands import handleCommand
+    from .commands import handle_command
 
-    np = np_server.getActiveNimplant()
+    np = np_server.get_active_nimplant()
 
     if os.name == "posix":
         command = input(f"NimPlant {np.id} $ > ")
@@ -74,4 +75,4 @@ def promptUserForCommand():
             auto_suggest=AutoSuggestFromHistory(),
         )
 
-    handleCommand(command)
+    handle_command(command)

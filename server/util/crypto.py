@@ -2,6 +2,7 @@ import base64, string, random
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
 
+
 # XOR function to transmit key securely. Matches nimplant XOR function in 'client/util/crypto.nim'
 def xorString(value, key):
     k = key
@@ -21,7 +22,7 @@ def randString(size, chars=string.ascii_letters + string.digits + string.punctua
 
 
 # https://stackoverflow.com/questions/3154998/pycrypto-problem-using-aesctr
-def encryptData(plaintext, key):
+def encrypt_data(plaintext, key):
     iv = randString(16).encode("UTF-8")
     ctr = Counter.new(128, initial_value=int.from_bytes(iv, byteorder="big"))
     aes = AES.new(key.encode("UTF-8"), AES.MODE_CTR, counter=ctr)

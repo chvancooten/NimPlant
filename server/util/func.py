@@ -499,7 +499,7 @@ def downloadFile(np, args, raw_command):
 
     os.makedirs(os.path.dirname(localPath), exist_ok=True)
     np.receiveFile(localPath)
-    command = f"download {filePath}"
+    command = f"download \"{filePath}\""
 
     guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint("Staged download command for NimPlant.", np.guid, taskGuid=guid)

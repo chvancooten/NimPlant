@@ -68,17 +68,17 @@ class BadRequestReason(Enum):
 
 
 # Define a function to notify users of unknown or erroneous requests
-def notify_bad_request(request: Request, reason: BadRequestReason = BadRequestReason.UNKNOWN):
+def notify_bad_request(request: Request, reason: BadRequestReason = BadRequestReason.UNKNOWN, np_guid: Optional[str] = None):
     source = get_external_ip(request)
     headers = dict(request.headers)
     user_agent = request.headers.get("User-Agent", "Unknown")
 
-    nimplantPrint(f"Rejected {request.method} request from '{source}': {request.path} ({user_agent})")
-    nimplantPrint(f"Reason: {reason.get_explanation()}")
+    nimplantPrint(f"Rejected {request.method} request from '{source}': {request.path} ({user_agent})", target=np_guid)
+    nimplantPrint(f"Reason: {reason.get_explanation()}", target=np_guid)
 
     # Printing headers would be useful for checking if we have id or guid definitions.
-    nimplantPrint("Request Headers:")
-    nimplantPrint(json.dumps(headers, ensure_ascii=False))
+    nimplantPrint("Request Headers:", target=np_guid)
+    nimplantPrint(json.dumps(headers, ensure_ascii=False), target=np_guid)
 
     pass
 
@@ -155,6 +155,7 @@ def flaskListener(xor_key):
             if userAgent == flask.request.headers.get("User-Agent"):
                 # Update the external IP address if it changed
                 if not np.ipAddrExt == get_external_ip(flask.request):
+                    nimplantPrint(f"External IP Address for NimPlant changed from {np.ipAddrExt} to {get_external_ip(flask.request)}", np.guid)
                     np.ipAddrExt = get_external_ip(flask.request)
 
                 if np.pendingTasks:
@@ -170,7 +171,8 @@ def flaskListener(xor_key):
             else:
                 notify_bad_request(
                     flask.request,
-                    BadRequestReason.USER_AGENT_MISMATCH
+                    BadRequestReason.USER_AGENT_MISMATCH,
+                    np.guid
                 )
                 return flask.jsonify(status="Not found"), 404
         else:
@@ -219,7 +221,8 @@ def flaskListener(xor_key):
                         else:
                             notify_bad_request(
                                 flask.request,
-                                BadRequestReason.NO_TASK_GUID
+                                BadRequestReason.NO_TASK_GUID,
+                                np.guid
                             )
                             np.stopHostingFile()
                             return flask.jsonify(status="Not found"), 404
@@ -236,14 +239,16 @@ def flaskListener(xor_key):
                     # Error: The Nimplant is not hosting a file or the file ID is incorrect
                     notify_bad_request(
                         flask.request,
-                        BadRequestReason.NOT_HOSTING_FILE if np.hostingFile is None else BadRequestReason.INCORRECT_FILE_ID
+                        BadRequestReason.NOT_HOSTING_FILE if np.hostingFile is None else BadRequestReason.INCORRECT_FILE_ID,
+                        np.guid
                     )
                     return flask.jsonify(status="OK"), 200
             else:
                 # Error: The user-agent is incorrect
                 notify_bad_request(
                     flask.request,
-                    BadRequestReason.USER_AGENT_MISMATCH
+                    BadRequestReason.USER_AGENT_MISMATCH,
+                    np.guid
                 )
                 return flask.jsonify(status="Not found"), 404
         else:
@@ -282,7 +287,8 @@ def flaskListener(xor_key):
                         else:
                             notify_bad_request(
                                 flask.request,
-                                BadRequestReason.NO_TASK_GUID
+                                BadRequestReason.NO_TASK_GUID,
+                                np.guid
                             )
                             np.stopReceivingFile()
                             return flask.jsonify(status="Not found"), 404
@@ -297,13 +303,15 @@ def flaskListener(xor_key):
                 else:
                     notify_bad_request(
                         flask.request,
-                        BadRequestReason.NOT_RECEIVING_FILE
+                        BadRequestReason.NOT_RECEIVING_FILE,
+                        np.guid
                     )
                     return flask.jsonify(status="OK"), 200
             else:
                 notify_bad_request(
                     flask.request,
-                    BadRequestReason.USER_AGENT_MISMATCH
+                    BadRequestReason.USER_AGENT_MISMATCH,
+                    np.guid
                 )
                 return flask.jsonify(status="Not found"), 404
         else:
@@ -332,7 +340,8 @@ def flaskListener(xor_key):
             else:
                 notify_bad_request(
                     flask.request,
-                    BadRequestReason.USER_AGENT_MISMATCH
+                    BadRequestReason.USER_AGENT_MISMATCH,
+                    np.guid
                 )
                 return flask.jsonify(status="Not found"), 404
         else:

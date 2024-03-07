@@ -143,7 +143,7 @@ def handleCommand(raw_command, np=None):
 
         # Handle commands that do not need any server-side handling
         elif cmd in nimplantCmds:
-            guid = np.addTask(raw_command)
+            guid = np.addTask(' '.join(shlex.quote(arg) for arg in [cmd, *args]))
             nimplantPrint(f"Staged command '{raw_command}'.", np.guid, taskGuid=guid)
         else:
             nimplantPrint(

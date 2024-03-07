@@ -1,9 +1,12 @@
+import traceback
 from datetime import datetime
 from struct import pack, calcsize
 from time import sleep
+from typing import Optional
 from zlib import compress
 import base64
 import os, hashlib, json, sys
+from flask import Request
 
 
 # Clear screen
@@ -569,3 +572,46 @@ def tailNimPlantLog(np=None, lines=100):
         logContents = ""
 
     return {"id": id, "lines": lines, "result": logContents}
+
+
+# Define a utility function to easily get the 'real' IP from a request
+def get_external_ip(request: Request):
+    if request.headers.get("X-Forwarded-For"):
+        return request.access_route[0]
+    else:
+        return request.remote_addr
+
+
+def dump_debug_info_for_exception(error: Exception, request: Optional[Request] = None) -> None:
+    # Capture the full traceback as a string
+    traceback_str = ''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))
+
+    # Log detailed error information
+    nimplantPrint("Detailed traceback:")
+    nimplantPrint(traceback_str)
+
+    # Additional request context
+    request_headers = dict(request.headers)
+    request_method = request.method
+    request_path = request.path
+    request_query_string = request.query_string.decode('utf-8')
+    request_remote_addr = request.remote_addr
+    try:
+        request_body_snippet = request.get_data(as_text=True)[:200]  # Log only the first 200 characters
+    except Exception as e:
+        request_body_snippet = "Error reading request body: " + str(e)
+
+    # Environment details
+    environment_details = {
+        'REQUEST_METHOD': request_method,
+        'PATH_INFO': request_path,
+        'QUERY_STRING': request_query_string,
+        'REMOTE_ADDR': request_remote_addr,
+        'REQUEST_HEADERS': request_headers,
+        'REQUEST_BODY_SNIPPET': request_body_snippet,
+    }
+
+    # Log additional context
+    nimplantPrint("Request Details:")
+    nimplantPrint(json.dumps(environment_details, indent=4, ensure_ascii=False))
+

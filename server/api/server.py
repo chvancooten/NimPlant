@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 
 from server.util.commands import get_commands, handle_command
 from server.util.config import config
-from server.util.crypto import randString
+from server.util.crypto import random_string
 from server.util.func import exit_server
 from server.util.nimplant import np_server
 from server.util.db import (
@@ -31,7 +31,7 @@ app = flask.Flask(
     static_folder="../web/static",
     template_folder="../web",
 )
-app.secret_key = randString(32)
+app.secret_key = random_string(32)
 
 
 # Define the API server
@@ -45,9 +45,11 @@ def api_server():
     @app.route("/api/downloads", methods=["GET"])
     def get_downloads():
         try:
-            downloadsPath = os.path.abspath(f"server/downloads/server-{np_server.guid}")
+            downloads_path = os.path.abspath(
+                f"server/downloads/server-{np_server.guid}"
+            )
             res = []
-            items = os.scandir(downloadsPath)
+            items = os.scandir(downloads_path)
             for item in items:
                 if item.is_dir() and item.name.startswith("nimplant-"):
                     downloads = os.scandir(item.path)
@@ -71,11 +73,11 @@ def api_server():
     @app.route("/api/downloads/<nimplant_guid>/<filename>", methods=["GET"])
     def get_download(nimplant_guid, filename):
         try:
-            downloadsPath = os.path.abspath(
+            downloads_path = os.path.abspath(
                 f"server/downloads/server-{np_server.guid}/nimplant-{nimplant_guid}"
             )
             return flask.send_from_directory(
-                downloadsPath, filename, as_attachment=True
+                downloads_path, filename, as_attachment=True
             )
         except FileNotFoundError:
             return flask.jsonify("File not found"), 404
@@ -192,7 +194,7 @@ def api_server():
         return flask.render_template("nimplants/details.html")
 
     @app.route("/<path:path>")
-    def catch_all(path):
+    def catch_all(_path):
         return flask.render_template("404.html")
 
     @app.errorhandler(Exception)

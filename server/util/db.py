@@ -1,6 +1,5 @@
 import sqlite3
 import server.util.func as func
-from server.util.config import config
 from server.util.nimplant import Server, NimPlant
 
 con = sqlite3.connect(

@@ -1,10 +1,12 @@
-import base64, string, random
+import base64
+import random
+import string
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
 
 
 # XOR function to transmit key securely. Matches nimplant XOR function in 'client/util/crypto.nim'
-def xorString(value, key):
+def xor_string(value, key):
     k = key
     result = []
     for c in value:
@@ -17,13 +19,15 @@ def xorString(value, key):
     return bytes(result)
 
 
-def randString(size, chars=string.ascii_letters + string.digits + string.punctuation):
+def random_string(
+    size, chars=string.ascii_letters + string.digits + string.punctuation
+):
     return "".join(random.choice(chars) for _ in range(size))
 
 
 # https://stackoverflow.com/questions/3154998/pycrypto-problem-using-aesctr
-def encrypt_data(plaintext, key):
-    iv = randString(16).encode("UTF-8")
+def encrypt_data(plaintext: str, key: str) -> str:
+    iv = random_string(16).encode("UTF-8")
     ctr = Counter.new(128, initial_value=int.from_bytes(iv, byteorder="big"))
     aes = AES.new(key.encode("UTF-8"), AES.MODE_CTR, counter=ctr)
     try:
@@ -34,7 +38,7 @@ def encrypt_data(plaintext, key):
     return enc
 
 
-def decryptData(blob, key):
+def decrypt_data(blob: bytes, key: str) -> str:
     ciphertext = base64.b64decode(blob)
     iv = ciphertext[:16]
     ctr = Counter.new(128, initial_value=int.from_bytes(iv, byteorder="big"))
@@ -43,7 +47,7 @@ def decryptData(blob, key):
     return dec
 
 
-def decryptBinaryData(blob, key):
+def decrypt_data_to_bytes(blob: bytes, key: str) -> bytes:
     ciphertext = base64.b64decode(blob)
     iv = ciphertext[:16]
     ctr = Counter.new(128, initial_value=int.from_bytes(iv, byteorder="big"))

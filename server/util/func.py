@@ -188,7 +188,7 @@ def execute_assembly(np: NimPlant, args, raw_command):
 
     try:
         file = args[k]
-    except:
+    except IndexError:
         nimplant_print(
             "Invalid number of arguments received. Usage: 'execute-assembly <BYPASSAMSI=0> <BLOCKETW=0> [localfilepath] <arguments>'.",
             np.guid,
@@ -196,11 +196,14 @@ def execute_assembly(np: NimPlant, args, raw_command):
         )
         return
 
-    # Check if assembly is provided as file path (normal use) or Base64 blob (GUI)
+    # Check if assembly is provided as file path (normal use), GUI use is handled via API
+    assembly = None
     try:
         if os.path.isfile(file):
             with open(file, "rb") as f:
                 assembly = f.read()
+        else:
+            raise FileNotFoundError
     except:
         nimplant_print(
             "Invalid assembly file specified.",
@@ -218,7 +221,7 @@ def execute_assembly(np: NimPlant, args, raw_command):
         for arg in ["execute-assembly", amsi, etw, assembly, assembly_arguments]
     )
 
-    guid = np.add_task(command, taskFriendly=raw_command)
+    guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print(
         "Staged execute-assembly command for NimPlant.", np.guid, task_guid=guid
     )
@@ -363,7 +366,7 @@ def inline_execute(np: NimPlant, args, raw_command):
         for arg in ["inline-execute", assembly, entry_point, assembly_args_final]
     )
 
-    guid = np.add_task(command, taskFriendly=raw_command)
+    guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print(
         "Staged inline-execute command for NimPlant.", np.guid, task_guid=guid
     )
@@ -397,7 +400,7 @@ def powershell(np: NimPlant, args, raw_command):
         shlex.quote(arg) for arg in ["powershell", amsi, etw, powershell_cmd]
     )
 
-    guid = np.add_task(command, taskFriendly=raw_command)
+    guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print("Staged powershell command for NimPlant.", np.guid, task_guid=guid)
 
 
@@ -424,7 +427,7 @@ def shinject(np: NimPlant, args, raw_command):
             shlex.quote(arg) for arg in ["shinject", process_id, shellcode]
         )
 
-        guid = np.add_task(command, taskFriendly=raw_command)
+        guid = np.add_task(command, task_friendly=raw_command)
         nimplant_print("Staged shinject command for NimPlant.", np.guid, task_guid=guid)
 
     else:
@@ -460,7 +463,7 @@ def upload_file(np: NimPlant, args, raw_command):
             shlex.quote(arg) for arg in ["upload", file_id, file_name, remote_path]
         )
 
-        guid = np.add_task(command, taskFriendly=raw_command)
+        guid = np.add_task(command, task_friendly=raw_command)
         nimplant_print("Staged upload command for NimPlant.", np.guid, task_guid=guid)
 
     else:
@@ -490,7 +493,7 @@ def download_file(np: NimPlant, args, raw_command):
     np.receive_file(local_path)
     command = " ".join(shlex.quote(arg) for arg in ["download", file_path])
 
-    guid = np.add_task(command, taskFriendly=raw_command)
+    guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print("Staged download command for NimPlant.", np.guid, task_guid=guid)
 
 

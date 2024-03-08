@@ -101,7 +101,7 @@ class Server:
             res = [np for np in self.nimplant_list if np.guid == nimplant_id]
         else:
             # Select by sequential ID
-            res = [np for np in self.nimplant_list if np.id == int(nimplant_id)]
+            res = [np for np in self.nimplant_list if np.id == nimplant_id]
 
         if res and res[0].active:
             func.nimplant_print(f"Starting interaction with NimPlant #{res[0].id}.")
@@ -136,7 +136,7 @@ class Server:
         return False
 
     def is_active_nimplant_selected(self):
-        if self.active_nimplant_guid != None:
+        if self.active_nimplant_guid is not None:
             return self.get_active_nimplant().active
         else:
             return False
@@ -166,23 +166,16 @@ class Server:
                     "{:<4} {:<8} {:<15} {:<15} {:<15} {:<15} {:<20} {:<20}\n".format(
                         np.id,
                         np.guid,
-                        np.ipAddrExt,
-                        np.ipAddrInt,
+                        np.ip_external,
+                        np.ip_internal,
                         np.username,
                         np.hostname,
                         f"{np.pname} ({np.pid})",
-                        f"{np.lastCheckin} ({np.getLastCheckinSeconds()}s ago)",
+                        f"{np.last_checkin} ({np.get_last_checkin_seconds()}s ago)",
                     )
                 )
 
         return result.rstrip()
-
-    def get_nimplant_server_info(self):
-        np_server_info = []
-        for np in self.nimplant_list:
-            np_server_info.append(np.get_info())
-
-        return {"nimplants": np_server_info}
 
     def check_late_nimplants(self):
         for np in self.nimplant_list:
@@ -253,27 +246,27 @@ class NimPlant:
         # Create new Nimplant object in the database
         db.db_initialize_nimplant(self, np_server.guid)
 
-    def restore_from_database(self, dbNimplant):
-        self.id = dbNimplant["id"]
-        self.guid = dbNimplant["guid"]
-        self.active = dbNimplant["active"]
-        self.late = dbNimplant["late"]
-        self.ip_external = dbNimplant["ipAddrExt"]
-        self.ip_internal = dbNimplant["ipAddrInt"]
-        self.username = dbNimplant["username"]
-        self.hostname = dbNimplant["hostname"]
-        self.os_build = dbNimplant["osBuild"]
-        self.pid = dbNimplant["pid"]
-        self.pname = dbNimplant["pname"]
-        self.risky_mode = dbNimplant["riskyMode"]
-        self.sleep_time = dbNimplant["sleepTime"]
-        self.sleep_jitter = dbNimplant["sleepJitter"]
-        self.kill_date = dbNimplant["killDate"]
-        self.first_checkin = dbNimplant["firstCheckin"]
-        self.last_checkin = dbNimplant["lastCheckin"]
-        self.hosting_file = dbNimplant["hostingFile"]
-        self.receiving_file = dbNimplant["receivingFile"]
-        self.encryption_key = dbNimplant["cryptKey"]
+    def restore_from_database(self, db_nimplant):
+        self.id = db_nimplant["id"]
+        self.guid = db_nimplant["guid"]
+        self.active = db_nimplant["active"]
+        self.late = db_nimplant["late"]
+        self.ip_external = db_nimplant["ipAddrExt"]
+        self.ip_internal = db_nimplant["ipAddrInt"]
+        self.username = db_nimplant["username"]
+        self.hostname = db_nimplant["hostname"]
+        self.os_build = db_nimplant["osBuild"]
+        self.pid = db_nimplant["pid"]
+        self.pname = db_nimplant["pname"]
+        self.risky_mode = db_nimplant["riskyMode"]
+        self.sleep_time = db_nimplant["sleepTime"]
+        self.sleep_jitter = db_nimplant["sleepJitter"]
+        self.kill_date = db_nimplant["killDate"]
+        self.first_checkin = db_nimplant["firstCheckin"]
+        self.last_checkin = db_nimplant["lastCheckin"]
+        self.hosting_file = db_nimplant["hostingFile"]
+        self.receiving_file = db_nimplant["receivingFile"]
+        self.encryption_key = db_nimplant["cryptKey"]
 
     def checkin(self):
         self.last_checkin = func.timestamp()
@@ -291,11 +284,11 @@ class NimPlant:
     def get_last_checkin_seconds(self):
         if self.last_checkin is None:
             return None
-        lastCheckinDatetime = datetime.strptime(
+        last_checkin_datetime = datetime.strptime(
             self.last_checkin, func.TIMESTAMP_FORMAT
         )
-        nowDatetime = datetime.now()
-        return (nowDatetime - lastCheckinDatetime).seconds
+        now_datetime = datetime.now()
+        return (now_datetime - last_checkin_datetime).seconds
 
     def is_active(self):
         if not self.active:
@@ -324,7 +317,7 @@ class NimPlant:
     def kill(self):
         self.add_task("kill")
 
-    def get_vars(self):
+    def get_info_pretty(self):
         return func.pretty_print(vars(self))
 
     def get_next_task(self):
@@ -332,16 +325,16 @@ class NimPlant:
         self.pending_tasks.remove(task)
         return task
 
-    def add_task(self, task, taskFriendly=None):
+    def add_task(self, task, task_friendly=None):
         # Log the 'friendly' command separately, for use with B64-driven commands such as inline-execute
-        if taskFriendly is None:
-            taskFriendly = task
+        if task_friendly is None:
+            task_friendly = task
 
         guid = "".join(
             random.choice(string.ascii_letters + string.digits) for i in range(8)
         )
         self.pending_tasks.append({"guid": guid, "task": task})
-        db.db_nimplant_log(self, task_guid=guid, task=task, task_friendly=taskFriendly)
+        db.db_nimplant_log(self, task_guid=guid, task=task, task_friendly=task_friendly)
         db.db_update_nimplant(self)
         return guid
 
@@ -383,27 +376,6 @@ class NimPlant:
     def stop_receiving_file(self):
         self.receiving_file = None
         db.db_update_nimplant(self)
-
-    def get_info(self):
-        return {
-            "id": self.id,
-            "guid": self.guid,
-            "active": self.active,
-            "ip_external": self.ip_external,
-            "ip_internal": self.ip_internal,
-            "username": self.username,
-            "hostname": self.hostname,
-            "pid": self.pid,
-            "last_checkin": self.last_checkin,
-            "os_build": self.os_build,
-            "sleep_time": self.sleep_time,
-            "sleep_jitter": self.sleep_jitter,
-            "kill_date": self.kill_date,
-            "first_checkin": self.first_checkin,
-            "pending_tasks": self.pending_tasks,
-            "hosting_file": self.hosting_file,
-            "encryption_key": self.encryption_key,
-        }
 
 
 # Initialize global class to keep nimplant objects in

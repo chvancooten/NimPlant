@@ -59,7 +59,7 @@ def handle_command(raw_command, np: NimPlant = None):
 
         elif cmd == "help":
             if len(args) >= 1:
-                msg = func.get_command_help(args[1])
+                msg = func.get_command_help(args[0])
             else:
                 msg = func.get_help_menu()
 
@@ -83,7 +83,7 @@ def handle_command(raw_command, np: NimPlant = None):
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "nimplant":
-            msg = np.get_info()
+            msg = np.get_info_pretty()
             func.nimplant_print(msg, np.guid, raw_command)
 
         elif cmd == "osbuild":

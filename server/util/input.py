@@ -3,9 +3,9 @@ import os
 # Command history and command / path completion on Linux
 if os.name == "posix":
     import readline
-    from .commands import getCommandList
+    from server.util.commands import get_command_list
 
-    commands = getCommandList()
+    commands = get_command_list()
 
     def list_folder(path):
         if path.startswith(os.path.sep):
@@ -42,27 +42,28 @@ else:
     from prompt_toolkit.contrib.completers.system import SystemCompleter
     from prompt_toolkit.shortcuts import CompleteStyle
 
-    from .commands import getCommandList
+    from server.util.commands import get_command_list
 
-    commands = getCommandList()
+    commands = get_command_list()
 
     # Complete system commands and paths
     systemCompleter = SystemCompleter()
 
     # Use a nested dict for each command to prevent arguments from being auto-completed before a command is entered and vice versa
-    dict = {}
+    completion_dict = {}
     for c in commands:
-        dict[c] = systemCompleter
-    nestedCompleter = NestedCompleter.from_nested_dict(dict)
+        completion_dict[c] = systemCompleter
+    nestedCompleter = NestedCompleter.from_nested_dict(completion_dict)
 
     session = PromptSession()
 
-# User prompt
-def promptUserForCommand():
-    from .nimplant import np_server
-    from .commands import handleCommand
 
-    np = np_server.getActiveNimplant()
+# User prompt
+def prompt_user_for_command():
+    from server.util.nimplant import np_server, NimPlant
+    from server.util.commands import handle_command
+
+    np: NimPlant = np_server.get_active_nimplant()
 
     if os.name == "posix":
         command = input(f"NimPlant {np.id} $ > ")
@@ -74,4 +75,4 @@ def promptUserForCommand():
             auto_suggest=AutoSuggestFromHistory(),
         )
 
-    handleCommand(command)
+    handle_command(command)

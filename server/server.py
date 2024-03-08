@@ -50,13 +50,13 @@ def main(xor_key=459457925, name=""):
 
     # Start daemonized Flask server for API communications
     t1 = threading.Thread(name="Listener", target=api_server)
-    t1.setDaemon(True)
+    t1.daemon = True
     t1.start()
     nimplant_print(f"Started management server on http://{server_ip}:{server_port}.")
 
     # Start another thread for NimPlant listener
     t2 = threading.Thread(name="Listener", target=flask_listener, args=(xor_key,))
-    t2.setDaemon(True)
+    t2.daemon = True
     t2.start()
     nimplant_print(
         f"Started NimPlant listener on {listener_type.lower()}://{listener_ip}:{listener_port}. CTRL-C to cancel waiting for NimPlants."
@@ -64,7 +64,7 @@ def main(xor_key=459457925, name=""):
 
     # Start another thread to periodically check if nimplants checked in on time
     t3 = threading.Thread(name="Listener", target=periodic_nimplant_checks)
-    t3.setDaemon(True)
+    t3.daemon = True
     t3.start()
 
     # Run the console as the main thread

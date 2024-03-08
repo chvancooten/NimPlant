@@ -10,14 +10,14 @@ type InfoCardType = {
 function InfoCard({icon, content}: InfoCardType) {
   return (
     <Paper color="blue" shadow="sm" p="md" withBorder
-    sx={{ height: '100%' }}
+    style={{ height: '100%' }}
     >
-      <Stack pl={5} align="flex-start" justify="space-evenly" spacing="lg" sx={{ height: '100%' }} >
-        <Group sx={(theme) => ({ color: theme.colors.gray[3] })}>
+      <Stack pl={5} align="flex-start" justify="space-evenly" gap="lg" style={{ height: '100%' }} >
+        <Group style={{ color: 'var(--mantine-color-gray-3)' }}>
           {icon}
         </Group>
 
-        <Group sx={(theme) => ({ color: theme.colors.gray[7] })}>
+        <Group style={{ color: 'var(--mantine-color-gray-7)' }}>
           {content}
         </Group>
       </Stack>

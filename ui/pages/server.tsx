@@ -25,16 +25,16 @@ const ServerInfo: NextPage = () => {
     <TitleBar title="Server Info" icon={<FaServer size='2em' />} noBorder />
     <Tabs defaultValue="serverinfo">
       <Tabs.List mx={-25} grow>
-        <Tabs.Tab value="serverinfo" icon={<FaInfoCircle />}>Information</Tabs.Tab>
-        <Tabs.Tab value="serverconsole" icon={<FaTerminal />}>Console</Tabs.Tab>
+        <Tabs.Tab value="serverinfo" leftSection={<FaInfoCircle />}>Information</Tabs.Tab>
+        <Tabs.Tab value="serverconsole" leftSection={<FaTerminal />}>Console</Tabs.Tab>
       </Tabs.List>
 
       <Tabs.Panel value="serverinfo">
         <InfoCardListServer />
       </Tabs.Panel>
 
-      <Tabs.Panel value="serverconsole">
-        <Console consoleData={serverConsole} />
+      <Tabs.Panel style={{height: '100%'}} value="serverconsole">
+        <Console consoleData={serverConsole} allowInput={false} />
       </Tabs.Panel>
 
     </Tabs>

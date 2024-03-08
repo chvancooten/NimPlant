@@ -1,11 +1,11 @@
-cryptography==41.0.7
+cryptography==42.0.5
 flask_cors==4.0.0
-Flask==3.0.0
-gevent==23.9.1
+Flask==3.0.2
+gevent==24.2.1
 itsdangerous==2.1.2
-Jinja2==3.1.2
+Jinja2==3.1.3
 prompt_toolkit==3.0.43; sys_platform=="win32"
-PyCryptoDome==3.19.0
+PyCryptoDome==3.20.0
 pyyaml==6.0.1
 requests==2.31.0
 toml==0.10.2

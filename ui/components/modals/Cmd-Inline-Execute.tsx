@@ -112,7 +112,6 @@ function InlineExecuteModal({ modalOpen, setModalOpen, npGuid }: IProps) {
 
                         <Grid.Col span={3}>
                             <NativeSelect
-                            placeholder="Argument type" 
                             value={arg.type} 
                             onChange={(event) => updateArgument(index, arg.value, event.currentTarget.value)}
                             data={[
@@ -142,9 +141,9 @@ function InlineExecuteModal({ modalOpen, setModalOpen, npGuid }: IProps) {
             {/* Submit button */}
             <Button 
                 onClick={submit}
-                leftIcon={<FaTerminal />}
+                leftSection={<FaTerminal />}
                 loading={submitLoading}
-                sx={{width: '100%'}}
+                style={{width: '100%'}}
             >
                 Execute
             </Button>

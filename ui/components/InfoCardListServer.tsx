@@ -13,14 +13,14 @@ function InfoCardListServer() {
 
   // Return the actual cards
   return (
-    <Stack ml="xl" mr={40} mt="xl" spacing="xs">
+    <Stack ml="xl" mr={40} mt="xl" gap="xs">
 
       <ExitServerModal modalOpen={exitModalOpen} setModalOpen={setExitModalOpen} />
 
       <Button
         mb="sm"
         onClick={() => setExitModalOpen(true)}
-        leftIcon={<FaSkull />} sx={{maxWidth:'200px'}}
+        leftSection={<FaSkull />} style={{maxWidth:'200px'}}
       >
         Kill server
       </Button>
@@ -30,7 +30,7 @@ function InfoCardListServer() {
       </Title>
 
       <Grid columns={2} gutter="lg">
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaServer size='1.5em' />} content={
             <Skeleton visible={!serverInfo}>
               <Text>Connected to Server {' '}
@@ -42,7 +42,7 @@ function InfoCardListServer() {
           } />
         </Grid.Col>
 
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaHeadphones size='1.5em' />} content={
             <Skeleton visible={!serverInfo}>
               <Text>Listener running at <Highlight>{serverInfo && getListenerString(serverInfo)}</Highlight></Text>
@@ -57,7 +57,7 @@ function InfoCardListServer() {
       </Title>
 
       <Grid columns={2} gutter="lg">
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaClock size='1.5em' />} content={
             <Skeleton visible={!serverInfo}>
               <Text>
@@ -72,7 +72,7 @@ function InfoCardListServer() {
           } />
         </Grid.Col>
         
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaInternetExplorer size='1.5em' />} content={
             <Skeleton visible={!serverInfo}>
               <Text>

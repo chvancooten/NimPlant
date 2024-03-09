@@ -4,6 +4,7 @@ import { timeSince } from '../modules/nimplant';
 import Link from 'next/link'
 import React from "react";
 import Types from '../modules/nimplant.d'
+import classes from '../styles/liststyles.module.css'
 
 type NimplantOverviewCardType = {
   np: Types.NimplantOverview
@@ -14,21 +15,13 @@ type NimplantOverviewCardType = {
 function NimplantOverviewCard({np, largeScreen} : NimplantOverviewCardType) {
   return (
     <Group grow py={20} pl={largeScreen ? 50 : 0}
-      sx={(theme) => ({ 
-        '&:not(:last-child)': {
-          borderBottom: `1px solid ${theme.colors.gray[1]}`,
-        },
-
-        '&:hover': {
-          cursor: 'pointer',
-        }
-      })}
+      className={classes.group}
     >
       <Link href={`/nimplants/details?guid=${np.guid}`} passHref style={{ textDecoration: 'none' }}>
-        <Group sx={(theme) => ({ color: theme.colors.gray[7] })} grow>
+        <Group style={{ color: 'var(--mantine-color-gray-7)' }} grow>
           <Group>
             <Group ml={largeScreen ? -50 : 0} hidden={largeScreen ? false : false} 
-              sx={(theme) => (np.late
+              style={(theme) => (np.late
                               ? { color: theme.colors.orange[3] }
                               : np.active
                                 ? { color: theme.colors.green[3] }
@@ -37,15 +30,15 @@ function NimplantOverviewCard({np, largeScreen} : NimplantOverviewCardType) {
             >
               {np.active && !np.late ? <FaLink size='1.5em' /> : <FaUnlink size='1.5em' />}
             </Group>
-            <Stack spacing={0} align="flex-start">
-              <Text weight="bold" pl={largeScreen ? 10 : 0} 
-                sx={(theme) => ({ color: theme.colors.rose[6] })}
+            <Stack gap={0} align="flex-start">
+              <Text fw="bold" pl={largeScreen ? 10 : 0} 
+                style={{ color: 'var(--mantine-color-rose-6)' }}
               >
                 {largeScreen ? `${np.id} - ${np.guid}` : np.guid}
               </Text>
 
               <Group pl={largeScreen ? 10 : 0}
-                sx={(theme) => ({ color: theme.colors.gray[5] })}
+                style={{ color: 'var(--mantine-color-gray-5)' }}
               >
                 <Group hidden={largeScreen ? false : true}>
                   <FaClock />
@@ -58,12 +51,12 @@ function NimplantOverviewCard({np, largeScreen} : NimplantOverviewCardType) {
           </Group>
 
           <Group pl={largeScreen ? 10 : 0}>
-            <Stack spacing={0} align="flex-start">
+            <Stack gap={0} align="flex-start">
               <Text>
                 {np.username} @ {np.hostname}
               </Text>
               <Group 
-                sx={(theme) => ({ color: theme.colors.gray[5] })}
+                style={{ color: 'var(--mantine-color-gray-5)' }}
               >
                 <Group hidden={largeScreen ? false : true}>
                   <FaFingerprint />
@@ -74,7 +67,7 @@ function NimplantOverviewCard({np, largeScreen} : NimplantOverviewCardType) {
           </Group>
 
           <Group pl={largeScreen ? 15 : 5}>
-            <Stack spacing={0} align="flex-start">
+            <Stack gap={0} align="flex-start">
               <Group>
                 <Group hidden={largeScreen ? false : true}>
                   <FaNetworkWired />
@@ -82,7 +75,7 @@ function NimplantOverviewCard({np, largeScreen} : NimplantOverviewCardType) {
                 <Text ml={largeScreen ? -10 : 0}>{np.ipAddrInt}</Text>
               </Group>
               <Group 
-                sx={(theme) => ({ color: theme.colors.gray[5] })}
+                style={{ color: 'var(--mantine-color-gray-5)' }}
               >
                 <Group hidden={largeScreen ? false : true}>
                   <FaCloud />
@@ -92,7 +85,7 @@ function NimplantOverviewCard({np, largeScreen} : NimplantOverviewCardType) {
             </Stack>
 
             <Group hidden={largeScreen ? false : true} m={0} p={0}
-              sx={(theme) => ({ color: theme.colors.gray[5], position: 'absolute', float: 'right', right: '50px'})}
+              style={{ color: 'var(--mantine-color-gray-5)', position: 'absolute', float: 'right', right: '50px'}}
             >
               <Space />
               <FaAngleRight size="1.5em" />

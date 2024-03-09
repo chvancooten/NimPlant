@@ -73,8 +73,8 @@ function UploadModal({ modalOpen, setModalOpen, npGuid }: IProps) {
             {/* Submit button */}
             <Button 
                 onClick={submit}
-                leftIcon={<FaUpload />}
-                sx={{width: '100%'}}
+                leftSection={<FaUpload />}
+                style={{width: '100%'}}
                 loading={submitLoading}
             >
                 Upload

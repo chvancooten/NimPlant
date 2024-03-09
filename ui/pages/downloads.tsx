@@ -12,7 +12,7 @@ const Downloads: NextPage = () => {
     <>
     <TitleBar title="Downloads" icon={<FaDownload size='2em' />} noBorder />
     <ScrollArea ml={largeScreen ? "sm" : 0} mr={largeScreen ? "lg" : "sm"} mt="xl">
-      <Group pl={largeScreen ? 25 : 10} mb="lg" grow sx={(theme) => ({ color: theme.colors.gray[5] })}>
+      <Group pl={largeScreen ? 25 : 10} mb="lg" grow style={{ color: 'var(--mantine-color-gray-5)'}}>
         <Text size="lg">
           Filename
         </Text>

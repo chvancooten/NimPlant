@@ -25,7 +25,7 @@ function NimplantOverviewCardList() {
   // Logic for displaying component
   if (nimplantsLoading || nimplantsError) {
     return (
-      <Group py="xl" sx={(theme) => ({ color: theme.colors.gray[5] })}>
+      <Group py="xl" style={{ color: 'var(--mantine-color-gray-5)' }}>
       <Loader variant="dots" />
       <Text size="md">Loading...</Text>
       </Group>
@@ -34,7 +34,7 @@ function NimplantOverviewCardList() {
 
   // Check data length and return placeholder if no nimplants are active
   if (nimplants.length === 0) return (
-    <Group py="xl" sx={(theme) => ({ color: theme.colors.gray[5] })}>
+    <Group py="xl" style={{ color: 'var(--mantine-color-gray-5)' }}>
     <FaRegMeh size='1.5em' />
     <Text size="md">Nothing here...</Text>
     </Group>
@@ -42,7 +42,7 @@ function NimplantOverviewCardList() {
 
   // Otherwise render the NimplantOverviewCard component for each nimplant
   return nimplants.map((np: Types.NimplantOverview) => (
-    <NimplantOverviewCard key={np.guid} np={np} largeScreen={largeScreen} />
+    <NimplantOverviewCard key={np.guid} np={np} largeScreen={largeScreen || false} />
   ))
 }
 

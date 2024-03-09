@@ -78,8 +78,7 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
     var   newPos     : number = historyPosition + direction
 
     // Only allow history browsing when there is history and the input field is empty or matches a history entry
-    if (histLength === 0) return;
-    if (!commandHistory.some((i:any) => i.taskFriendly == enteredCommand) && enteredCommand !== '') return;
+    if (histLength === 0 || !commandHistory.some((i:any) => i.taskFriendly == enteredCommand) && enteredCommand !== '') return;
     
     // Trigger history browsing only with the 'up' direction
     if (historyPosition === 0 && direction === 1) return;
@@ -165,7 +164,7 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
             style={{
               fontSize: '14px',
               width: '100%',
-              height: 'calc(100% - 40px)',
+              height: allowInput ? 'calc(100% - 40px)' : '100%',
               border: '1px solid',
               borderColor: 'var(--mantine-color-gray-4)',
               borderRadius: '4px',

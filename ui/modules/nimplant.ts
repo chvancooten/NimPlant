@@ -269,21 +269,23 @@ export function consoleToText(json: any): string {
 export function showConnectionError(): void {
     notifications.show({
         id: 'ConnErr',
-        disallowClose: true,
         autoClose: false,
-        title: "Connection error",
-        message: 'Trying to reconnect to Nimplant API server',
         color: 'red',
+        withCloseButton: false,
         loading: true,
+        message: 'Trying to reconnect to Nimplant API server',
+        title: "Connection error",
       });
 }
 
 export function restoreConnectionError(): void {
     notifications.update({
         id: 'ConnErr',
-        color: 'teal',
-        title: 'Connection restored',
-        message: 'Connection to the Nimplant API server was restored',
         autoClose: 3000,
+        color: 'teal',
+        withCloseButton: true,
+        loading: false,
+        message: 'Connection to the Nimplant API server was restored',
+        title: 'Connection restored',
       });
 }

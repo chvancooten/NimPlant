@@ -13,7 +13,7 @@ export function Highlight({children}: {children: React.ReactNode}) {
 type ChildrenProps = React.PropsWithChildren<{}>;
 function MainLayout({ children }: ChildrenProps) {
   const theme = useMantineTheme();
-  const isSmallScreen = useMediaQuery('(max-width: 37.5em)');
+  const isSmallScreen = useMediaQuery('(max-width: 767px)'); // 'sm' breakpoint
   const [sidebarOpened, { toggle }] = useDisclosure();
 
   return (
@@ -35,14 +35,14 @@ function MainLayout({ children }: ChildrenProps) {
         }}
         padding="md"
       >
-        <AppShell.Header>
+        <AppShell.Header style={{ display: 'flex', justifyContent: 'space-between' }}>
           <Burger
             opened={sidebarOpened}
             onClick={toggle}
             hiddenFrom="sm"
             size="sm"
             color={theme.colors.gray[6]}
-            mr="xl"
+            p="xl"
           />
 
           <div style={{ display: 'flex', alignItems: 'center', width: '380px', height: '100%' }}>

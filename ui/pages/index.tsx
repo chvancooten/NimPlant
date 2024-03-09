@@ -7,7 +7,7 @@ import type { NextPage } from 'next'
 import classes from '../styles/styles.module.css'
 
 const Index: NextPage = () => {
-  const largeScreen = useMediaQuery('(min-width: 800px)');
+  const largeScreen = useMediaQuery('(min-width: 767px)'); // 'sm' breakpoint
   const theme = useMantineTheme();
   
   return (

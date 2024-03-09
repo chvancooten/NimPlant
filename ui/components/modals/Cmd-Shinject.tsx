@@ -64,10 +64,9 @@ function ShinjectModal({ modalOpen, setModalOpen, npGuid }: IProps) {
             <NumberInput 
                 placeholder="Target Process (PID)"
                 value={targetPid}
-                icon={<FaBullseye />}
-                onChange={(value) => setTargetPid(value)}
+                leftSection={<FaBullseye />}
+                onChange={(value) => setTargetPid(Number(value))}
                 min={0}
-                precision={0}
             />
 
             </SimpleGrid>
@@ -77,8 +76,8 @@ function ShinjectModal({ modalOpen, setModalOpen, npGuid }: IProps) {
             {/* Submit button */}
             <Button 
                 onClick={submit}
-                leftIcon={<FaTerminal />}
-                sx={{width: '100%'}}
+                leftSection={<FaTerminal />}
+                style={{width: '100%'}}
                 loading={submitLoading}
             >
                 Execute

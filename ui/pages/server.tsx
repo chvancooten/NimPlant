@@ -29,11 +29,11 @@ const ServerInfo: NextPage = () => {
         <Tabs.Tab value="serverconsole" leftSection={<FaTerminal />}>Console</Tabs.Tab>
       </Tabs.List>
 
-      <Tabs.Panel value="serverinfo">
+      <Tabs.Panel mx={-15} value="serverinfo">
         <InfoCardListServer />
       </Tabs.Panel>
 
-      <Tabs.Panel style={{height: '100%'}} value="serverconsole">
+      <Tabs.Panel mx={-15} style={{height: '100%'}} value="serverconsole">
         <Console consoleData={serverConsole} allowInput={false} />
       </Tabs.Panel>
 

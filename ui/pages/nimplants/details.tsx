@@ -39,8 +39,8 @@ const NimplantIndex: NextPage = () => {
 
         <Tabs defaultValue="npconsole">
           <Tabs.List mx={-25} grow>
-            <Tabs.Tab value="npinfo" icon={<FaInfoCircle />}>Information</Tabs.Tab>
-            <Tabs.Tab value="npconsole" icon={<FaTerminal />}>Console</Tabs.Tab>
+            <Tabs.Tab value="npinfo" leftSection={<FaInfoCircle />}>Information</Tabs.Tab>
+            <Tabs.Tab value="npconsole" leftSection={<FaTerminal />}>Console</Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="npinfo">

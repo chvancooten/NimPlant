@@ -1,4 +1,4 @@
-import { Box, Center, Group, Image, AppShellSection, Text, UnstyledButton } from "@mantine/core";
+import { Box, Center, Group, Image, AppShell, Text, UnstyledButton, Stack } from "@mantine/core";
 import { FaHome, FaServer, FaLaptopCode, FaDownload } from 'react-icons/fa'
 import { useMediaQuery } from "@mantine/hooks";
 import Link from "next/link";
@@ -36,19 +36,19 @@ function NavbarContents() {
 
   return (
     <>
-      <AppShellSection grow>
-        <Box p="md">
+      <AppShell.Section p="md" grow>
+        <Stack gap={5}>
           <NavItem icon={<FaHome size='1.5em' />} label="Home" target='/' active={currentPath === '/'} />
           <NavItem icon={<FaServer size='1.5em' />} label="Server" target='/server' active={currentPath === '/server'} />
           <NavItem icon={<FaDownload size='1.5em' />} label="Downloads" target='/downloads' active={currentPath === '/downloads'} />
           <NavItem icon={<FaLaptopCode size='1.5em' />} label="Nimplants" target='/nimplants' active={currentPath.startsWith('/nimplants')} />
-        </Box>
-      </AppShellSection>
-      <AppShellSection>
+        </Stack>
+      </AppShell.Section>
+      <AppShell.Section>
         <Center>
           <Image alt='Logo' src='/nimplant.svg' h={60} />
         </Center>
-      </AppShellSection>
+      </AppShell.Section>
     </>
   )
 }

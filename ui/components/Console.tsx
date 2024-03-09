@@ -1,3 +1,4 @@
+import styles from "../styles/console.module.css";
 import { Autocomplete, Button, Group, ScrollArea, Stack } from "@mantine/core";
 import { consoleToText, getCommands } from "../modules/nimplant";
 import { FaTerminal } from "react-icons/fa";
@@ -149,7 +150,7 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
   return (
     <Stack ml={largeScreen ? "xl" : "lg"} mr={largeScreen ? 40 : 35} mt="xl" gap="xs"
       style={{
-        height: 'calc(100vh - 275px)',
+        height: 'calc(100vh - 285px)',
         display: 'flex',
       }}
     >
@@ -164,7 +165,7 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
             style={{
               fontSize: '14px',
               width: '100%',
-              height: '100%',
+              height: 'calc(100% - 40px)',
               border: '1px solid',
               borderColor: 'var(--mantine-color-gray-4)',
               borderRadius: '4px',

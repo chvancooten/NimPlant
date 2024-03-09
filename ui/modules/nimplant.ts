@@ -1,7 +1,5 @@
-import { showNotification, updateNotification } from '@mantine/notifications';
-import { format } from 'date-fns';
-import formatDistanceToNow from 'date-fns/formatDistanceToNow';
-import parse from "date-fns/parse";
+import { notifications } from '@mantine/notifications';
+import { parse, format, formatDistanceToNow } from 'date-fns';
 import useSWR from 'swr'
 import Types from './nimplant.d'
 
@@ -118,14 +116,14 @@ export function serverExit(): void {
         }
     })
     .then(() => {
-        showNotification({
+        notifications.show({
             title: 'OK',
             message: 'Server is shutting down',
             color: 'green'
         })
     })
     .catch(() => {
-        showNotification({
+        notifications.show({
             title: 'Error',
             message: 'Error shutting down server',
             color: 'red'
@@ -141,14 +139,14 @@ export function nimplantExit(guid: string): void {
         }
     })
     .then(() => {
-        showNotification({
+        notifications.show({
             title: 'OK',
             message: 'Killing Nimplant',
             color: 'green'
         })
     })
     .catch(() => {
-        showNotification({
+        notifications.show({
             title: 'Error',
             message: 'Error killing Nimplant',
             color: 'red'
@@ -165,14 +163,14 @@ export function submitCommand(guid: string, command: string, _callback: Function
         body: JSON.stringify({ command })
         }).then((res) => {
             if (res.ok) {
-                showNotification({
+                notifications.show({
                     title: 'OK',
                     message: 'Command \''+ command.split(' ')[0] + '\' submitted',
                     color: 'green',
                   })
                   _callback()
             } else {
-                showNotification({
+                notifications.show({
                     title: 'Error',
                     message: 'Error sending command',
                     color: 'red',
@@ -202,14 +200,14 @@ export function uploadFile(file: File, _callbackCommand: Function = () => {}, _c
     }).then((res) => {
         res.json().then((data) => {
             if (res.ok) {
-                showNotification({
+                notifications.show({
                     title: 'OK',
                     message: 'File uploaded to server',
                     color: 'green',
                 })
                 _callbackCommand(data.path)
             } else {
-                showNotification({
+                notifications.show({
                     title: 'Error',
                     message: 'Error uploading file',
                     color: 'red',
@@ -269,7 +267,7 @@ export function consoleToText(json: any): string {
     return res
 }
 export function showConnectionError(): void {
-    showNotification({
+    notifications.show({
         id: 'ConnErr',
         disallowClose: true,
         autoClose: false,
@@ -281,7 +279,7 @@ export function showConnectionError(): void {
 }
 
 export function restoreConnectionError(): void {
-    updateNotification({
+    notifications.update({
         id: 'ConnErr',
         color: 'teal',
         title: 'Connection restored',

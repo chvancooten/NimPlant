@@ -24,7 +24,7 @@ function ExitServerModal({ modalOpen, setModalOpen }: IProps) {
 
             <Button 
                 onClick={() => {setModalOpen(false); serverExit()}}
-                leftIcon={<FaSkull />} sx={{width: '100%'}}
+                leftSection={<FaSkull />} style={{width: '100%'}}
             >
                 Yes, kill kill kill!
             </Button>

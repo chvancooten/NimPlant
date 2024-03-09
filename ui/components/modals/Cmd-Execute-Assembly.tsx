@@ -80,8 +80,8 @@ function ExecuteAssemblyModal({ modalOpen, setModalOpen, npGuid }: IProps) {
                 justify="center"
                 align="center"
                 >
-                <Chip checked={patchAmsi} onChange={setPatchAmsi}>Patch AMSI</Chip>
-                <Chip checked={patchEtw} onChange={setPatchEtw}>Block ETW</Chip>
+                <Chip checked={patchAmsi} onChange={setPatchAmsi} variant="outline">Patch AMSI</Chip>
+                <Chip checked={patchEtw} onChange={setPatchEtw} variant="outline">Block ETW</Chip>
             </Flex>
 
             </SimpleGrid>
@@ -91,8 +91,8 @@ function ExecuteAssemblyModal({ modalOpen, setModalOpen, npGuid }: IProps) {
             {/* Submit button */}
             <Button 
                 onClick={submit}
-                leftIcon={<FaTerminal />}
-                sx={{width: '100%'}}
+                leftSection={<FaTerminal />}
+                style={{width: '100%'}}
                 loading={submitLoading}
             >
                 Execute

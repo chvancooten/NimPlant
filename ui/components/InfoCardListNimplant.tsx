@@ -12,7 +12,7 @@ function InfoCardListNimplant({guid}: {guid: string}) {
 
   // Return the actual cards
   return (
-    <Stack ml="xl" mr={40} mt="xl" spacing="xs">
+    <Stack ml="xl" mr={40} mt="xl" gap="xs">
 
       <Modal
         opened={exitModalOpen}
@@ -26,7 +26,7 @@ function InfoCardListNimplant({guid}: {guid: string}) {
 
         <Button 
           onClick={() => {setExitModalOpen(false); nimplantExit(guid)}}
-          leftIcon={<FaSkull />} sx={{width: '100%'}}
+          leftSection={<FaSkull />} style={{width: '100%'}}
         >
           Yes, kill kill kill!
         </Button>
@@ -35,7 +35,7 @@ function InfoCardListNimplant({guid}: {guid: string}) {
       <Button
         mb="sm"
         onClick={() => setExitModalOpen(true)}
-        leftIcon={<FaSkull />} sx={{maxWidth:'200px'}}
+        leftSection={<FaSkull />} style={{maxWidth:'200px'}}
       >
         Kill Nimplant
       </Button>
@@ -45,7 +45,7 @@ function InfoCardListNimplant({guid}: {guid: string}) {
       </Title>
 
       <Grid columns={2} gutter="lg">
-        <Grid.Col xs={2} md={2}>
+        <Grid.Col span={{ xs: 2, md: 2}}>
           <InfoCard icon={<FaLaptopCode size='1.5em' />} content={
             <Skeleton visible={!nimplantInfo}>
               <Text>
@@ -56,10 +56,10 @@ function InfoCardListNimplant({guid}: {guid: string}) {
           } />
         </Grid.Col>
 
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaClock size='1.5em' />} content={
             <Skeleton visible={!nimplantInfo}>
-              <Text sx={{whiteSpace: 'pre-line'}}>
+              <Text style={{whiteSpace: 'pre-line'}}>
                 Last seen: <Highlight>{nimplantInfo && timeSince(nimplantInfo.lastCheckin)}</Highlight>{' '}
                 (sleep <Highlight>{nimplantInfo && nimplantInfo.sleepTime} seconds</Highlight>,{' '}
                 jitter <Highlight>{nimplantInfo && nimplantInfo.sleepJitter}%</Highlight>){'\n'}
@@ -70,10 +70,10 @@ function InfoCardListNimplant({guid}: {guid: string}) {
           } />
         </Grid.Col>  
 
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaFingerprint size='1.5em' />} content={
             <Skeleton visible={!nimplantInfo}>
-              <Text sx={{whiteSpace: 'pre-line'}}>
+              <Text style={{whiteSpace: 'pre-line'}}>
                 Username: <Highlight>{nimplantInfo && nimplantInfo.username}</Highlight>{'\n'}
                 Hostname: <Highlight>{nimplantInfo && nimplantInfo.hostname}</Highlight>
               </Text>
@@ -81,10 +81,10 @@ function InfoCardListNimplant({guid}: {guid: string}) {
           } />
         </Grid.Col>  
 
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaNetworkWired size='1.5em' />} content={
             <Skeleton visible={!nimplantInfo}>
-              <Text sx={{whiteSpace: 'pre-line'}}>
+              <Text style={{whiteSpace: 'pre-line'}}>
                 Internal IP address: <Highlight>{nimplantInfo && nimplantInfo.ipAddrInt}</Highlight>{'\n'}
                 External IP address: <Highlight>{nimplantInfo && nimplantInfo.ipAddrExt}</Highlight>
               </Text>
@@ -92,10 +92,10 @@ function InfoCardListNimplant({guid}: {guid: string}) {
           } />
         </Grid.Col>
         
-        <Grid.Col xs={2} md={1}>
+        <Grid.Col span={{ xs: 2, md: 1}}>
           <InfoCard icon={<FaWindows size='1.5em' />} content={
             <Skeleton visible={!nimplantInfo}>
-              <Text sx={{whiteSpace: 'pre-line'}}>
+              <Text style={{whiteSpace: 'pre-line'}}>
               <Highlight>{nimplantInfo && nimplantInfo.osBuild}</Highlight>{'\n'}
                 Process <Highlight>{nimplantInfo && nimplantInfo.pname}</Highlight> (ID <Highlight>{nimplantInfo && nimplantInfo.pid}</Highlight>)
               </Text>

@@ -1,3 +1,4 @@
+import styles from "../styles/console.module.css";
 import { Autocomplete, Button, Group, ScrollArea, Stack } from "@mantine/core";
 import { consoleToText, getCommands } from "../modules/nimplant";
 import { FaTerminal } from "react-icons/fa";
@@ -39,30 +40,6 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
   // Define dynamic autocomplete options
   const {commandList, commandListLoading, commandListError} = getCommands()
 
-  const getCompletions = (): string[] => {
-    if (enteredCommand === '') return [];
-
-    var completionOptions: string[] = [];
-
-    // Add base command completions
-    if (!commandListLoading && !commandListError) {
-      completionOptions = commandList.map((a:any) => a['command'])
-    }
-    
-    // Add history completions, ignore duplicates
-    Object.keys(consoleData).forEach((key) => {
-      if (consoleData[key]['taskFriendly'] !== null) {
-        var value : string = consoleData[key]['taskFriendly']
-        if (!completionOptions.includes(value)){
-          completionOptions.push(value)
-        }
-        
-      }
-    })
-
-    return completionOptions.filter((o) => o.startsWith(enteredCommand) && o != enteredCommand);
-  }
-
   // Define a utility function to handle command and clear the input field
   const handleSubmit = () => {
     if (inputFunction === undefined || guid === undefined) return;
@@ -101,8 +78,7 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
     var   newPos     : number = historyPosition + direction
 
     // Only allow history browsing when there is history and the input field is empty or matches a history entry
-    if (histLength === 0) return;
-    if (!commandHistory.some((i:any) => i.taskFriendly == enteredCommand) && enteredCommand !== '') return;
+    if (histLength === 0 || !commandHistory.some((i:any) => i.taskFriendly == enteredCommand) && enteredCommand !== '') return;
     
     // Trigger history browsing only with the 'up' direction
     if (historyPosition === 0 && direction === 1) return;
@@ -142,15 +118,40 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
 
   // Recalculate autocomplete options
   useEffect(() => {
+
+    const getCompletions = (): string[] => {
+      if (enteredCommand === '') return [];
+  
+      var completionOptions: string[] = [];
+  
+      // Add base command completions
+      if (!commandListLoading && !commandListError) {
+        completionOptions = commandList.map((a:any) => a['command'])
+      }
+      
+      // Add history completions, ignore duplicates
+      Object.keys(consoleData).forEach((key) => {
+        if (consoleData[key]['taskFriendly'] !== null) {
+          var value : string = consoleData[key]['taskFriendly']
+          if (!completionOptions.includes(value)){
+            completionOptions.push(value)
+          }
+          
+        }
+      })
+  
+      return completionOptions.filter((o) => o.startsWith(enteredCommand) && o != enteredCommand);
+    }
+
     setAutocompleteOptions(getCompletions());
-  }, [enteredCommand, commandListLoading, consoleData])
+  }, [enteredCommand, commandListLoading, commandListError, consoleData, commandList])
 
   return (
-    <Stack ml={largeScreen ? "xl" : "lg"} mr={largeScreen ? 40 : 35} mt="xl" spacing="xs"
-      sx={() => ({
-        height: 'calc(100vh - 275px)',
+    <Stack ml={largeScreen ? "xl" : "lg"} mr={largeScreen ? 40 : 35} mt="xl" gap="xs"
+      style={{
+        height: 'calc(100vh - 285px)',
         display: 'flex',
-      })}
+      }}
     >
           {/* Modals */}
           <ExecuteAssemblyModal modalOpen={modalExecAsmOpened} setModalOpen={setModalExecAsmOpened} npGuid={guid} />
@@ -160,60 +161,62 @@ function Console({ allowInput, consoleData, disabled, guid, inputFunction }: Con
         
           {/* Code view window */}
           <Group m={0} p={0} grow 
-            sx={(theme) => ({
+            style={{
               fontSize: '14px',
               width: '100%',
-              flex: '1',
+              height: allowInput ? 'calc(100% - 40px)' : '100%',
               border: '1px solid',
-              borderColor: theme.colors.gray[4],
+              borderColor: 'var(--mantine-color-gray-4)',
               borderRadius: '4px',
-              minHeight: 0,
-            })}>
+            }}
+          >
               <ScrollArea
                 viewportRef={consoleViewport as any}
                 onScrollPositionChange={handleScroll}
-                sx={(theme) => ({
+                style={{
                   fontSize: largeScreen ? '14px' : '12px',
                   padding: largeScreen ? '14px' : '6px',
                   whiteSpace: 'pre-wrap',
                   fontFamily: 'monospace',
-                  color: theme.colors.gray[8],
-                  backgroundColor: theme.colors.gray[0],
+                  color: 'var(--mantine-color-gray-8)',
+                  backgroundColor: 'var(--mantine-color-gray-0)',
                   height: '100%',
-                })}
+                  flex: '1',
+                }}
               >
                   {!consoleData ? "Loading..." : consoleToText(consoleData)}
               </ScrollArea>
           </Group>
 
         {/* Command input field */}
-        <Group hidden={!allowInput}
-        sx={() => ({
-          flex: '0',
-        })}>
-          <Autocomplete 
-            data={autocompleteOptions}
-            disabled={disabled}
-            icon={<FaTerminal size={14} />}
-            onChange={setEnteredCommand}
-            onDropdownClose={() => setDropdownOpened(false)}
-            onDropdownOpen={() => setDropdownOpened(true)}
-            placeholder={disabled ? "Nimplant is not active" : "Type command here..."}
-            ref={focusTrapRef}
-            switchDirectionOnFlip={true}
-            value={enteredCommand}
-            onKeyDown={getHotkeyHandler([
-              ['Enter', handleSubmit],
-              ['Tab', () => autocompleteOptions.length > 0 && setEnteredCommand(autocompleteOptions[0])],
-              ['ArrowUp', () => handleHistory(-1)],
-              ['ArrowDown', () => handleHistory(1)],
-            ])}
-            sx={() => ({
-              flex: '1',
-            })}
-          />
-          <Button disabled={disabled} onClick={handleSubmit}>Run command</Button>
-        </Group>
+        {allowInput ? (
+          <Group 
+          style={{
+            flex: '0',
+          }}>
+            <Autocomplete 
+              data={autocompleteOptions}
+              disabled={disabled}
+              leftSection={<FaTerminal size={14} />}
+              onChange={setEnteredCommand}
+              onDropdownClose={() => setDropdownOpened(false)}
+              onDropdownOpen={() => setDropdownOpened(true)}
+              placeholder={disabled ? "Nimplant is not active" : "Type command here..."}
+              ref={focusTrapRef}
+              value={enteredCommand}
+              onKeyDown={getHotkeyHandler([
+                ['Enter', handleSubmit],
+                ['Tab', () => autocompleteOptions.length > 0 && setEnteredCommand(autocompleteOptions[0])],
+                ['ArrowUp', () => handleHistory(-1)],
+                ['ArrowDown', () => handleHistory(1)],
+              ])}
+              style={{
+                flex: '1',
+              }}
+            />
+            <Button disabled={disabled} onClick={handleSubmit}>Run command</Button>
+          </Group>
+        ) : null}
 
     </Stack>
   )

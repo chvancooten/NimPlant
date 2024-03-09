@@ -42,7 +42,6 @@ proc download*(li : Listener, cmdGuid : string,  args : varargs[string]) : strin
         allowAnyHttpsCertificate: true,
         headers: @[
             Header(key: obf("User-Agent"), value: li.userAgent),
-            Header(key: obf("Content-Encoding"), value: obf("gzip")),
             Header(key: obf("X-Identifier"), value: li.id), # Nimplant ID
             Header(key: obf("X-Unique-ID"), value: cmdGuid)  # Task GUID
         ],

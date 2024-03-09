@@ -1,0 +1,8 @@
+.group {
+    border-bottom: 1px solid var(--mantine-color-gray-1);
+    cursor: pointer;
+}
+
+.group:last-child {
+    border-bottom: none;
+}

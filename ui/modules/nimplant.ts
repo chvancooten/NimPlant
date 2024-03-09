@@ -1,7 +1,5 @@
-import { showNotification, updateNotification } from '@mantine/notifications';
-import { format } from 'date-fns';
-import formatDistanceToNow from 'date-fns/formatDistanceToNow';
-import parse from "date-fns/parse";
+import { notifications } from '@mantine/notifications';
+import { parse, format, formatDistanceToNow } from 'date-fns';
 import useSWR from 'swr'
 import Types from './nimplant.d'
 
@@ -29,15 +27,7 @@ const endpoints = {
     nimplantHistory: (guid: string, lines = 1000, offset = 0) => `${baseUrl}/api/nimplants/${guid}/history/${lines}`,
 }
 
-const fetcher = async (
-    input: RequestInfo,
-    init: RequestInit,
-    ...args: any[]
-  ) => {
-    const res = await fetch(input, init);
-    return res.json();
-  };
-
+const fetcher = (url: any) => fetch(url).then(r => r.json())
 
 //
 //  GET functions
@@ -126,14 +116,14 @@ export function serverExit(): void {
         }
     })
     .then(() => {
-        showNotification({
+        notifications.show({
             title: 'OK',
             message: 'Server is shutting down',
             color: 'green'
         })
     })
     .catch(() => {
-        showNotification({
+        notifications.show({
             title: 'Error',
             message: 'Error shutting down server',
             color: 'red'
@@ -149,14 +139,14 @@ export function nimplantExit(guid: string): void {
         }
     })
     .then(() => {
-        showNotification({
+        notifications.show({
             title: 'OK',
             message: 'Killing Nimplant',
             color: 'green'
         })
     })
     .catch(() => {
-        showNotification({
+        notifications.show({
             title: 'Error',
             message: 'Error killing Nimplant',
             color: 'red'
@@ -173,14 +163,14 @@ export function submitCommand(guid: string, command: string, _callback: Function
         body: JSON.stringify({ command })
         }).then((res) => {
             if (res.ok) {
-                showNotification({
+                notifications.show({
                     title: 'OK',
                     message: 'Command \''+ command.split(' ')[0] + '\' submitted',
                     color: 'green',
                   })
                   _callback()
             } else {
-                showNotification({
+                notifications.show({
                     title: 'Error',
                     message: 'Error sending command',
                     color: 'red',
@@ -210,14 +200,14 @@ export function uploadFile(file: File, _callbackCommand: Function = () => {}, _c
     }).then((res) => {
         res.json().then((data) => {
             if (res.ok) {
-                showNotification({
+                notifications.show({
                     title: 'OK',
                     message: 'File uploaded to server',
                     color: 'green',
                 })
                 _callbackCommand(data.path)
             } else {
-                showNotification({
+                notifications.show({
                     title: 'Error',
                     message: 'Error uploading file',
                     color: 'red',
@@ -277,23 +267,25 @@ export function consoleToText(json: any): string {
     return res
 }
 export function showConnectionError(): void {
-    showNotification({
+    notifications.show({
         id: 'ConnErr',
-        disallowClose: true,
         autoClose: false,
-        title: "Connection error",
-        message: 'Trying to reconnect to Nimplant API server',
         color: 'red',
+        withCloseButton: false,
         loading: true,
+        message: 'Trying to reconnect to Nimplant API server',
+        title: "Connection error",
       });
 }
 
 export function restoreConnectionError(): void {
-    updateNotification({
+    notifications.update({
         id: 'ConnErr',
-        color: 'teal',
-        title: 'Connection restored',
-        message: 'Connection to the Nimplant API server was restored',
         autoClose: 3000,
+        color: 'teal',
+        withCloseButton: true,
+        loading: false,
+        message: 'Connection to the Nimplant API server was restored',
+        title: 'Connection restored',
       });
 }

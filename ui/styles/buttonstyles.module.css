@@ -1,0 +1,22 @@
+.button {
+    display: block;
+    width: 100%;
+    padding: var(--mantine-spacing-xs);
+    border-radius: 5px;
+    transition: 0.1s;
+  }
+  
+  .button:hover {
+    color: white;
+    background-color: var(--mantine-color-rose-8);
+  }
+  
+  .buttonActive {
+    color: white;
+    background-color: var(--mantine-color-rose-8);
+  }
+  
+  .buttonInactive {
+    color: var(--mantine-color-rose-1);
+    background-color: transparent;
+  }

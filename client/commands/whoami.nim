@@ -1,7 +1,8 @@
-from winim/lean import GetUserName, CloseHandle, GetCurrentProcess, GetLastError, GetTokenInformation, OpenProcessToken, tokenElevation,
-    TOKEN_ELEVATION, TOKEN_INFORMATION_CLASS, TOKEN_QUERY, HANDLE, PHANDLE, DWORD, PDWORD, LPVOID, LPWSTR, TCHAR
+from winim/lean import GetUserNameW, CloseHandle, GetCurrentProcess, GetLastError, GetTokenInformation, OpenProcessToken, tokenElevation,
+    TOKEN_ELEVATION, TOKEN_INFORMATION_CLASS, TOKEN_QUERY, HANDLE, PHANDLE, DWORD, PDWORD, LPVOID, LPWSTR, WCHAR
 from winim/utils import `&`
-import strutils
+from winim/inc/lm import UNLEN
+import winim/winstr
 import ../util/strenc
 
 # Determine if the user is elevated (running in high-integrity context)
@@ -27,13 +28,12 @@ proc isUserElevated(): bool =
 # Get the current username via the GetUserName API
 proc whoami*() : string =
     var 
-        buf : array[257, TCHAR] # 257 is UNLEN+1 (max username length plus null terminator)
-        lpBuf : LPWSTR = addr buf[0]
-        pcbBuf : DWORD = int32(len(buf))
+      buf = newWString(UNLEN + 1)
+      cb = DWORD buf.len
 
-    discard GetUserName(lpBuf, &pcbBuf)
-    for character in buf:
-        if character == 0: break
-        result.add(char(character))
+    discard GetUserNameW(&buf, &cb)
+    buf.setLen(cb - 1)
+    result.add($buf)
+
     if isUserElevated():
         result.add(obf("*"))

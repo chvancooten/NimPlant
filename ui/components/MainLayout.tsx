@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import Head from 'next/head';
-import { AppShell, Header, Navbar, MediaQuery, Burger, useMantineTheme, Image, Badge, Space, Box, Text } from "@mantine/core";
+import { AppShell, Burger, useMantineTheme, Image, Badge, Space, Box, Text } from "@mantine/core";
+import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import NavbarContents from "./NavbarContents";
 
 // Basic component for highlighted text
 export function Highlight({children}: {children: React.ReactNode}) {
-  return <Text color='rose' component='span' weight={700}>{children}</Text>
+  return <Text c='rose' component='span' fw={700}>{children}</Text>
 }
 
 // Main layout component
 type ChildrenProps = React.PropsWithChildren<{}>;
 function MainLayout({ children }: ChildrenProps) {
   const theme = useMantineTheme();
-  const [sidebarOpened, setSidebarOpened] = useState(false)
-  
+  const isSmallScreen = useMediaQuery('(max-width: 767px)'); // 'sm' breakpoint
+  const [sidebarOpened, { toggle }] = useDisclosure();
+
   return (
     <>
       {/* Header information (static for all pages) */}
@@ -25,54 +27,55 @@ function MainLayout({ children }: ChildrenProps) {
 
       {/* Main layout (header-sidebar-content) is managed via AppShell */}
       <AppShell
-        navbarOffsetBreakpoint="sm"
-        fixed
-        styles={() => ({
-          main: { 
-            paddingRight: '0px',
-            height: 'calc(100vh-100px)',
-           },
-        })}  
-
-        header={
-          <Header height={100} p="md">
-            <div style={{ display: 'flex', alignItems: 'center', width: '380px', height: '100%' }}>
-              <MediaQuery largerThan="sm" styles={{ display: 'none' }}>
-                <Burger
-                  opened={sidebarOpened}
-                  onClick={() => setSidebarOpened((o) => !o)}
-                  size="sm"
-                  color={theme.colors.gray[6]}
-                  mr="xl"
-                />
-              </MediaQuery>
-  
-              <Image alt="Logo" m="sm" src='/nimplant-logomark.svg' fit='contain' height={70} />
-              
-              <MediaQuery smallerThan="sm" styles={{ display: 'none' }}>
-                <Box style={{  alignSelf: "flex-end", marginBottom: "10px" }}>
-                  <Space w="xs" />
-                  <Badge component="a" href="https://github.com/chvancooten/nimplant" target="_blank" variant="light" color="gray"
-                  style={{textTransform: 'lowercase',  cursor: 'pointer' }} >v1.2</Badge>
-                </Box>
-              </MediaQuery>
-            </div>
-          </Header>
-        }
-
-        navbar={
-          <Navbar p="md" hiddenBreakpoint="sm" hidden={!sidebarOpened} width={{ sm: 220, lg: 300 }}
-            styles={{ root: { background: theme.colors.rose[7], color: 'white' }}}
-            onClick={() => setSidebarOpened(false)}
-          >
-            <NavbarContents />
-          </Navbar>
-        }
+        header={{ height: 100 }}
+        navbar={{
+          width: { sm: 220, lg: 300 },
+          breakpoint: 'sm',
+          collapsed: { mobile: !sidebarOpened },
+        }}
+        padding="md"
       >
-        {children}
+        <AppShell.Header style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Burger
+            opened={sidebarOpened}
+            onClick={toggle}
+            hiddenFrom="sm"
+            size="sm"
+            color={theme.colors.gray[6]}
+            p="xl"
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', width: '380px', height: '100%' }}>
+            <Image alt="Logo" m="lg" mr="xs" src='/nimplant-logomark.svg' fit='contain' height={70} />
+
+            {!isSmallScreen && (
+              <Box mb="lg" style={{ alignSelf: "flex-end" }}>
+                <Space w="xs" />
+                <Badge
+                  component="a"
+                  href="https://github.com/chvancooten/nimplant"
+                  target="_blank"
+                  variant="light"
+                  color="gray"
+                  style={{ textTransform: 'lowercase', cursor: 'pointer' }}
+                >
+                  v1.3
+                </Badge>
+              </Box>
+            )}
+          </div>
+        </AppShell.Header>
+
+        <AppShell.Navbar p="md" style={{ background: theme.colors.rose[7], color: 'white' }} onClick={toggle}>
+          <NavbarContents />
+        </AppShell.Navbar>
+
+        <AppShell.Main>
+          {children}
+        </AppShell.Main>
       </AppShell>        
     </>
   )
 }
 
-export default MainLayout
+export default MainLayout;

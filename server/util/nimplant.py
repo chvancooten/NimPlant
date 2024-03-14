@@ -130,9 +130,7 @@ class Server:
 
     def has_active_nimplants(self):
         for np in self.nimplant_list:
-            if np.active:
-                if np.late:
-                    return False
+            if np.active and not np.late:
                 return True
         return False
 

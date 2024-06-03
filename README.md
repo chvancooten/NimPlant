@@ -22,12 +22,12 @@ If NimPlant has been useful to you and/or you like my work in general, your supp
 
 # Feature Overview
 
-- Lightweight and configurable implant written in the Nim programming language 
+- Lightweight and configurable implant written in the Nim and Rust programming languages
 - Pretty web GUI that will make you look cool during all your ops
-- Encryption and compression of all traffic by default, obfuscates static strings in implant artefacts
+- Encryption and compression of all traffic by default, obfuscates static strings in implant artifacts
 - Support for several implant types, including native binaries (exe/dll), shellcode or self-deleting executables
 - Wide selection of commands focused on early-stage operations including local enumeration, file or registry management, and web interactions
-- Easy deployment of more advanced functionality or payloads via `inline-execute`, `shinject` (using dynamic invocation), or in-thread `execute-assembly`
+- Easy deployment of more advanced functionality or payloads via `inline-execute`, `shinject` (using dynamic invocation), `powershell` in a custom runspace, or in-thread `execute-assembly`
 - Support for operations on any platform, implant only targeting x64 Windows for now
 - Comprehensive logging of all interactions and file operations
 - Much, much more, just see below :)
@@ -36,11 +36,23 @@ If NimPlant has been useful to you and/or you like my work in general, your supp
 
 ## Installation
 
-- Install Nim and Python3 on your OS of choice (installation via `choosenim` is recommended, as `apt` doesn't always have the latest version).
-- Install required packages using the Nimble package manager (`cd client; nimble install -d`).
+A modern version of Python3 is required to run Nimplant.
+
+### Server
+
 - Install `requirements.txt` from the server folder (`pip3 install -r server/requirements.txt`).
+
+### Implant (Nim)
+
+- Install the Nim toolchain for your platform (installation via `choosenim` is recommended, as `apt` doesn't always have the latest version).
+- Install required packages using the Nimble package manager (`cd client; nimble install -d`).
 - If you're on Linux or MacOS, install the `mingw` toolchain for your platform (`brew install mingw-w64` or `apt install mingw-w64`).
 - If you're on ArchLinux specifically, modify your Mingw config as per [this gist](https://gist.github.com/tothi/1f452e0466070db5921135ab312749fc) (thanks [@tothi](https://github.com/tothi)!).
+
+### Implant (Rust)
+
+- Install the Rust toolchain (installation via `rustup` is recommended).
+- Recommended for increased opsec: Modify your `~/.cargo/config.toml` file as per `Config.toml` and use the nighly build chain (`rustup default nightly`).
 
 ## Getting Started
 
@@ -72,7 +84,7 @@ An overview of settings is provided below.
 
 ### Compilation
 
-Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python NimPlant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, or `nim-debug`). Files will be written to `client/bin/`.
+Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python NimPlant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, `rust`, `nim-debug`, or `rust-debug`). Files will be written to `client/bin/` or `client-rs/bin/`, respectively.
 
 You may pass the `rotatekey` argument to generate and use a new XOR key during compilation.
 
@@ -105,7 +117,7 @@ PS C:\NimPlant> python .\NimPlant.py compile all
     | |\  | | | | | | |  __/| | (_| | | | | |_
     |_| \_|_|_| |_| |_|_|   |_|\__,_|_| |_|\__|
 
-        A light-weight stage 1 implant and C2 based on Nim and Python
+        A light-weight stage 1 implant and C2 based on Nim|Rust and Python
         By Cas van Cooten (@chvancooten)
 
 Compiling .exe for NimPlant
@@ -117,6 +129,8 @@ Done compiling! You can find compiled binaries in 'client/bin/'.
 ```
 
 ### Compilation with Docker
+
+> Only Nim compilation supported via Docker for now.
 
 The Docker image [chvancooten/nimbuild](https://hub.docker.com/r/chvancooten/nimbuild) can be used to compile NimPlant binaries. Using Docker is easy and avoids dependency issues, as all required dependencies are pre-installed in this container.
 
@@ -163,7 +177,7 @@ PS C:\NimPlant> python .\NimPlant.py server
     | |\  | | | | | | |  __/| | (_| | | | | |_
     |_| \_|_|_| |_| |_|_|   |_|\__,_|_| |_|\__|
 
-        A light-weight stage 1 implant and C2 written in Nim and Python
+        A light-weight stage 1 implant and C2 written in Nim|Rust and Python
         By Cas van Cooten (@chvancooten)
 
 [06/02/2023 10:47:23] Started management server on http://127.0.0.1:31337.
@@ -220,11 +234,12 @@ upload            (GUI) [localfilepath] <remotefilepath> Upload a file from the 
 wget              [url] <remotefilepath> Download a file to disk remotely.
 whoami            Get the user ID that NimPlant is running as.
 ```
+
 #### Using Beacon Object Files (BOFs)
 
-**NOTE: BOFs are volatile by nature, and running a faulty BOF or passing wrong arguments or types WILL crash your NimPlant session! Make sure to test BOFs before deploying!**
+**NOTE: BOFs are volatile by nature, and running a faulty BOF or passing wrong arguments or types may crash your NimPlant session! Make sure to test BOFs before deploying!**
 
-NimPlant supports the in-memory loading of BOFs thanks to the great [NiCOFF project](https://github.com/frkngksl/NiCOFF). Running a bof requires a local compiled BOF object file (usually called something like `bofname.x64.o`), an entrypoint (commonly `go`), and a list of arguments with their respective argument types. Arguments are passed as a space-seperated `arg argtype` pair. 
+NimPlant supports the in-memory loading of BOFs thanks to the great [NiCOFF](https://github.com/frkngksl/NiCOFF) (Nim) and [Coffee](https://github.com/hakaioffsec/coffee) (Rust) projects. Running a bof requires a local compiled BOF object file (usually called something like `bofname.x64.o`), an entrypoint (commonly `go`), and a list of arguments with their respective argument types. Arguments are passed as a space-seperated `arg argtype` pair. 
 
 Argument are given in accordance with the "Zzsib" format, so can be either `string` (alias: `z`), `wstring` (or `Z`), `integer` (aliases: `int` or `i`), `short` (`s`), or `binary` (`bin` or `b`). Binary arguments can be a raw binary string or base64-encoded, the latter is recommended to avoid bad characters.
 
@@ -261,8 +276,8 @@ NimPlant was developed as a learning project and released to the public for tran
 There are many reasons why Nimplant may fail to compile or run. If you encounter issues, please try the following (in order):
 
 - Ensure you followed the steps as described in the 'Installation' section above, double check that all dependencies are installed and the versions match
-- Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the `chvancooten/nimbuild` docker container to rule out any dependency issues
+- Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the Docker to rule out any dependency issues
 - Check the logs in the `server/logs` directory for any errors
-- Try the `nim-debug` compilation mode to compile with console and debug messages (.exe only) to see if any error messages are returned
+- Try the `nim-debug` or `rust-debug` compilation modes to compile with console and debug messages (.exe only) to see if any error messages are returned
 - Try compiling from another OS or with another toolchain to see if the same error occurs
-- If all of the above fails, submit an issue. Make sure to include the appropriate build information (OS, nim/python versions, dependency versions) and the outcome of the troubleshooting steps above. **Incomplete issues may be closed without notice.**
+- If all of the above fails, submit an issue. Make sure to include the appropriate build information (OS, nim/rust/python versions, dependency versions) and the outcome of the troubleshooting steps above. **Incomplete issues may be closed without notice.**

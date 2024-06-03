@@ -200,6 +200,7 @@ def compile_rust_debug(binary_type, xor_key, config):
 
 def compile_rust(binary_type, _xor_key, config, debug=False):
     # TODO: Docker compilation (also update README)
+    # TODO: Update CI/CD
     # TODO: Automate opsec tips / rustup chain from Cargo.toml?
     print("NOTE: Follow the tips in 'client-rs/Cargo.toml' for increased opsec.")
 

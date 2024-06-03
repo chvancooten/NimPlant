@@ -3,18 +3,15 @@
     <img src="ui/public/nimplant-logomark.svg" height="150">
   </a>
 
-  <h1>NimPlant - A light first-stage C2 implant written in Nim and Python</h1>
+  <h1>NimPlant - A light first-stage C2 implant written in Nim|Rust and Python</h1>
 </div>
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chvancooten/NimPlant/main.yml?label=Build)](https://github.com/chvancooten/NimPlant/actions)
 [![PRs Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-_By **Cas van Cooten** ([@chvancooten](https://twitter.com/chvancooten)), with special thanks to some awesome folks:_
-- _Fabian Mosch ([@S3cur3Th1sSh1t](https://twitter.com/ShitSecure)) for sharing dynamic invocation implementation in Nim and the Ekko sleep mask function_
-- _snovvcrash ([@snovvcrash](https://github.com/snovvcrash)) for adding the initial version of `execute-assembly` & self-deleting implant option_
-- _Furkan Göksel ([@frkngksl](https://github.com/frkngksl)) for his work on [NiCOFF](https://github.com/frkngksl/NiCOFF) and Guillaume Caillé ([@OffenseTeacher](https://github.com/offenseteacher)) for the initial implementation of `inline-execute`_
-- _Kadir Yamamoto ([@yamakadi](https://github.com/yamakadi)) for the design work, initial Vue.JS front-end and rusty nimplant, part of an [older branch](https://github.com/chvancooten/NimPlant/tree/rust-implant-and-old-ui) (unmaintained)_
-- _Mauricio Velazco ([@mvelazco](https://twitter.com/mvelazco)), Dylan Makowski ([@AnubisOnSec](https://twitter.com/AnubisOnSec)), Andy Palmer ([@pivotal8ytes](github.com/pivotal8ytes)), Medicus Riddick ([@retsdem22](https://twitter.com/retsdem22)), Spencer Davis ([@nixbyte](https://twitter.com/nixbyte)), and Florian Roth ([@cyb3rops](https://twitter.com/cyb3rops)), for their efforts in testing the pre-release and contributing [detections](https://github.com/chvancooten/NimPlant/tree/main/detection)_
+By **Cas van Cooten** ([@chvancooten](https://twitter.com/chvancooten)), with special thanks to some awesome folks: 
+
+_Kadir Yamamoto ([@yamakadi](https://github.com/yamakadi)), Furkan Göksel ([@frkngksl](https://github.com/frkngksl)) , Fabian Mosch ([@S3cur3Th1sSh1t](https://twitter.com/ShitSecure)), Rafael Félix ([@b1scoito](https://github.com/b1scoito)), Guillaume Caillé ([@OffenseTeacher](https://github.com/offenseteacher)), and many others!_
 
 If NimPlant has been useful to you and/or you like my work in general, your support is very welcome:
 

@@ -128,15 +128,23 @@ Done compiling! You can find compiled binaries in 'client/bin/'.
 
 ### Compilation with Docker
 
-> Only Nim compilation supported via Docker for now.
+Using Docker is easy and avoids dependency issues, as all required build-time and runtime dependencies are pre-installed in the container.
 
-The Docker image [chvancooten/nimbuild](https://hub.docker.com/r/chvancooten/nimbuild) can be used to compile NimPlant binaries. Using Docker is easy and avoids dependency issues, as all required dependencies are pre-installed in this container.
-
-To use it, install Docker for your OS and start the compilation in a container as follows.
+To use Docker, you must first build the `Dockerfile` from source. From the main directory, run the following:
 
 ```bash
-docker run --rm -v `pwd`:/usr/src/np -w /usr/src/np chvancooten/nimbuild python3 NimPlant.py compile all
+docker build . -t nimplant
 ```
+
+This will build a container tagged `nimplant:latest`. Note: this may take a while and produce a sizeable (~2.5G) container due to the development dependencies!
+
+Once this is done, you can run the container from the command line to run the NimPlant server or compile your artefacts.
+
+```bash
+docker run --rm -it -v ${PWD}:/nimplant -p80:80 -p443:443 -p31337:31337 nimplant /bin/bash
+```
+
+> Note: Make sure to tweak the command based on your preferences (volumen mounting / port forwarding). Also ensure that the container allows non-localhost connections in `config.toml`.
 
 ### Usage
 

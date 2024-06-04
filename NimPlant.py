@@ -200,10 +200,19 @@ def compile_rust_debug(binary_type, xor_key, config):
 
 def compile_rust(binary_type, _xor_key, config, debug=False):
     # TODO: Argparse
-    # TODO: Docker compilation (also update README)
-    # TODO: Update CI/CD
-    # TODO: Automate opsec tips / rustup chain from Cargo.toml?
-    print("NOTE: Follow the tips in 'client-rs/Cargo.toml' for increased opsec.")
+    # TODO: Update CI/CD (+yara?)
+
+    # Check if opsec profile has been applied
+    try:
+        with open(
+            os.path.expanduser("~/.cargo/config.toml"), "r", encoding="utf-8"
+        ) as f:
+            opsec_enabled = "-Zlocation-detail=none" in f.read()
+    except FileNotFoundError:
+        opsec_enabled = False
+
+    if not opsec_enabled:
+        print("NOTE: Follow the tips in 'client-rs/Cargo.toml' for increased opsec.")
 
     # Construct compilation command
     compile_command = (

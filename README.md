@@ -282,7 +282,7 @@ NimPlant was developed as a learning project and released to the public for tran
 There are many reasons why Nimplant may fail to compile or run. If you encounter issues, please try the following (in order):
 
 - Ensure you followed the steps as described in the 'Installation' section above, double check that all dependencies are installed and the versions match
-- Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the Docker to rule out any dependency issues
+- Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the Docker container to rule out any dependency issues
 - Check the logs in the `server/logs` directory for any errors
 - Try the `nim-debug` or `rust-debug` compilation modes to compile with console and debug messages (.exe only) to see if any error messages are returned
 - Try compiling from another OS or with another toolchain to see if the same error occurs

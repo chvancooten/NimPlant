@@ -199,6 +199,7 @@ def compile_rust_debug(binary_type, xor_key, config):
 
 
 def compile_rust(binary_type, _xor_key, config, debug=False):
+    # TODO: Argparse
     # TODO: Docker compilation (also update README)
     # TODO: Update CI/CD
     # TODO: Automate opsec tips / rustup chain from Cargo.toml?
@@ -227,6 +228,16 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
 
     if not debug:
         compile_command = compile_command + " --release"
+
+    if os.name != "nt":
+        compile_command = compile_command + " --target x86_64-pc-windows-gnu"
+
+        # When cross-compiling, we need to tell sodiumoxide to use
+        # a pre-compiled version libsodium (which is packaged)
+        os.environ["SODIUM_SHARED"] = "1"
+        os.environ["SODIUM_LIB_DIR"] = os.path.abspath(
+            os.path.join(os.path.dirname(sys.argv[0]), "client-rs/dist/")
+        )
 
     # Sleep mask enabled only if defined in config.toml
     sleep_mask_enabled = config["nimplant"]["sleepMask"]

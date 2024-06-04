@@ -49,6 +49,7 @@ A modern version of Python3 is required to run Nimplant.
 ### Implant (Rust)
 
 - Install the Rust toolchain (installation via `rustup` is recommended).
+- On linux, install the right windows target: `rustup target add x86_64-pc-windows-gnu`.
 - Recommended for increased opsec: Modify your `~/.cargo/config.toml` file as per `Config.toml` and use the nighly build chain (`rustup default nightly`).
 
 ## Getting Started

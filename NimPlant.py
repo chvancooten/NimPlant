@@ -243,7 +243,6 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
 
         # When cross-compiling, we need to tell sodiumoxide to use
         # a pre-compiled version libsodium (which is packaged)
-        os.environ["SODIUM_SHARED"] = "1"
         os.environ["SODIUM_LIB_DIR"] = os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]), "client-rs/dist/")
         )

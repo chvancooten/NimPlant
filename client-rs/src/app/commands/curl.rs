@@ -1,4 +1,4 @@
-use crate::internal::client::Client;
+use crate::app::client::Client;
 use fmtools::format; // using obfstr to obfuscate
 
 pub(crate) fn curl(url: &str, client: &Client) -> String {

@@ -1,8 +1,8 @@
-use crate::internal::dinvoke::{
+use crate::app::dinvoke::{
     nt_allocate_virtual_memory, nt_create_thread_ex, nt_open_process, nt_protect_virtual_memory,
     nt_write_virtual_memory,
 };
-use crate::internal::{client::Client, debug::debug_println};
+use crate::app::{client::Client, debug::debug_println};
 use dinvoke_rs::data::PAGE_EXECUTE_READ;
 use fmtools::format; // using obfstr to obfuscate
 use windows_sys::Wdk::Foundation::OBJECT_ATTRIBUTES;

@@ -23,6 +23,14 @@ strip = true
 codegen-units = 1
 panic = "abort"
 
+[lib]
+name = "nimplant"
+crate-type = ["cdylib"]
+
+[[bin]]
+name = "nimplant"
+path = "src/main.rs"
+
 [features]
 risky = [
     "clroxide",

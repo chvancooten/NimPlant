@@ -1,4 +1,4 @@
-use crate::internal::patches::{patch_amsi, patch_etw};
+use crate::app::patches::{patch_amsi, patch_etw};
 use clroxide::{
     clr::Clr,
     primitives::{_Assembly, wrap_method_arguments, wrap_string_in_variant},

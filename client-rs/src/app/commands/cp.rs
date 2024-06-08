@@ -1,4 +1,4 @@
-use crate::internal::win_utils::transfer_dir_to;
+use crate::app::win_utils::transfer_dir_to;
 use fmtools::format; // using obfstr to obfuscate
 use std::ffi::OsStr;
 use std::fs;

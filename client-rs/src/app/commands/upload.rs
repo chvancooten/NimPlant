@@ -1,7 +1,7 @@
 use fmtools::format; // using obfstr to obfuscate
 use std::{fs::File, io::Write};
 
-use crate::internal::client::Client;
+use crate::app::client::Client;
 
 // Upload a file from the C2 server to Nimplant
 // From NimPlant's perspective this is similar to wget, but calling to the C2 server instead

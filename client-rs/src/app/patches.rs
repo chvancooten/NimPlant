@@ -1,4 +1,4 @@
-use crate::internal::debug::debug_println;
+use crate::app::debug::debug_println;
 use fmtools::format; // using obfstr to obfuscate
 use libloading::{Library, Symbol};
 use std::mem;

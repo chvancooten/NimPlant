@@ -1,4 +1,4 @@
-use crate::internal::client::Client;
+use crate::app::client::Client;
 use fmtools::format; // using obfstr to obfuscate
 use std::path::Path;
 

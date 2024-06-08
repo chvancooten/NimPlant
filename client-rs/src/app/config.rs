@@ -5,7 +5,7 @@ use microkv::MicroKV;
 use serde::Deserialize;
 use std::str;
 
-use crate::internal::crypto::xor_bytes;
+use crate::app::crypto::xor_bytes;
 
 // Enum to define the config types
 // Must match the one in build.rs

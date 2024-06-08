@@ -1,4 +1,4 @@
-use crate::internal::win_utils::{get_hostname, get_process_id};
+use crate::app::win_utils::{get_hostname, get_process_id};
 use fmtools::format; // using obfstr to obfuscate
 use std::ffi::CStr;
 use windows_sys::Win32::Foundation::CloseHandle;

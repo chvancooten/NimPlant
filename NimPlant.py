@@ -221,15 +221,13 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
 
     match binary_type:
         case "exe":
-            pass  # No additional flags needed
+            compile_command = compile_command + " --bin=nimplant"
         case "exe-selfdelete":
             # TODO: Exe-Selfdelete
             print("RUST EXE-SELFDELETE NOT YET IMPLEMENTED.")
             exit(1)
         case "dll":
-            # TODO: Dll
-            print("RUST DLL NOT YET IMPLEMENTED.")
-            exit(1)
+            compile_command = compile_command + " --lib"
         case "raw":
             # TODO: Shellcode
             print("RUST SHELLCODE NOT YET IMPLEMENTED.")

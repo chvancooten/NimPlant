@@ -1,5 +1,3 @@
-// Hide the console window
-#![windows_subsystem = "windows"]
 // Enable features for COFF loading
 #![allow(internal_features)]
 #![feature(c_variadic)]
@@ -7,6 +5,7 @@
 
 mod app;
 
-fn main() {
+#[no_mangle]
+pub extern "C" fn Update() {
     app::main();
 }

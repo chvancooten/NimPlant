@@ -1,4 +1,4 @@
-use crate::internal::{client::Client, coff_loader};
+use crate::app::{client::Client, coff_loader};
 use fmtools::format; // using obfstr to obfuscate
 
 // Parse a string of hexadecimal arguments into a Vec<u8>

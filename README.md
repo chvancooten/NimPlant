@@ -138,7 +138,7 @@ docker build . -t nimplant
 
 This will build a container tagged `nimplant:latest`. Note: this may take a while and produce a sizeable (~2.5G) container due to the development dependencies!
 
-Once this is done, you can run the container from the command line to run the NimPlant server or compile your artefacts.
+Once this is done, you can run the container from the command line to run the NimPlant server or compile your artifacts.
 
 ```bash
 docker run --rm -it -v ${PWD}:/nimplant -p80:80 -p443:443 -p31337:31337 nimplant /bin/bash

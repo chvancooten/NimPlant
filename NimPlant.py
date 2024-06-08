@@ -215,28 +215,11 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
         print("NOTE: Follow the tips in 'client-rs/Cargo.toml' for increased opsec.")
 
     # Construct compilation command
-    compile_command = (
-        "cargo build --manifest-path=client-rs/Cargo.toml --target-dir=client-rs/bin -q"
-    )
-
-    match binary_type:
-        case "exe":
-            compile_command = compile_command + " --bin=nimplant"
-        case "exe-selfdelete":
-            # TODO: Exe-Selfdelete
-            print("RUST EXE-SELFDELETE NOT YET IMPLEMENTED.")
-            exit(1)
-        case "dll":
-            compile_command = compile_command + " --lib"
-        case "raw":
-            # TODO: Shellcode
-            print("RUST SHELLCODE NOT YET IMPLEMENTED.")
-            exit(1)
-
-    if not debug:
-        compile_command = compile_command + " --release"
+    target_path = "client-rs/target/"
+    compile_command = "cargo build --manifest-path=client-rs/Cargo.toml -q"
 
     if os.name != "nt":
+        target_path = target_path + "x86_64-pc-windows-gnu/"
         compile_command = compile_command + " --target x86_64-pc-windows-gnu"
 
         # When cross-compiling, we need to tell sodiumoxide to use
@@ -244,6 +227,28 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
         os.environ["SODIUM_LIB_DIR"] = os.path.abspath(
             os.path.join(os.path.dirname(sys.argv[0]), "client-rs/dist/")
         )
+
+    if debug:
+        target_path = target_path + "debug/"
+    else:
+        target_path = target_path + "release/"
+        compile_command = compile_command + " --release"
+
+    match binary_type:
+        case "exe":
+            target_path = target_path + "nimplant.exe"
+            compile_command = compile_command + " --bin=nimplant"
+        case "exe-selfdelete":
+            # TODO: Exe-Selfdelete
+            print("RUST EXE-SELFDELETE NOT YET IMPLEMENTED.")
+            exit(1)
+        case "dll":
+            target_path = target_path + "nimplant.dll"
+            compile_command = compile_command + " --lib"
+        case "raw":
+            # TODO: Shellcode
+            print("RUST SHELLCODE NOT YET IMPLEMENTED.")
+            exit(1)
 
     # Sleep mask enabled only if defined in config.toml
     sleep_mask_enabled = config["nimplant"]["sleepMask"]
@@ -258,6 +263,19 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
         compile_command = compile_command + " --features=risky"
 
     os.system(compile_command)
+
+    # Post-processing: move artifacts to `client-rs/bin`
+    # We do this because --out-dir is considered unstable for some reason :(
+    # https://doc.rust-lang.org/cargo/commands/cargo-build.html#output-options
+    bin_path = f"client-rs/bin/{os.path.basename(target_path)}"
+
+    if not os.path.exists("client-rs/bin"):
+        os.makedirs("client-rs/bin")
+
+    if os.path.exists(bin_path):
+        os.remove(bin_path)
+
+    os.rename(target_path, bin_path)
 
 
 def main():

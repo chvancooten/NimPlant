@@ -232,8 +232,7 @@ impl Default for Carrier {
 static mut OUTPUT: Carrier = Carrier::new();
 
 /// Prepare a data parser to extract arguments from the specified buffer.
-#[no_mangle]
-extern "C" fn beacon_data_parse(parser: *mut Datap, buffer: *mut c_char, size: c_int) {
+fn beacon_data_parse(parser: *mut Datap, buffer: *mut c_char, size: c_int) {
     if parser.is_null() {
         return;
     }
@@ -254,15 +253,13 @@ extern "C" fn beacon_data_parse(parser: *mut Datap, buffer: *mut c_char, size: c
     }
 }
 
-#[no_mangle]
-extern "C" fn beacon_data_ptr(_parser: *mut Datap, _size: c_int) -> *mut u8 {
+fn beacon_data_ptr(_parser: *mut Datap, _size: c_int) -> *mut u8 {
     // Isn't well documented.
     unimplemented!();
 }
 
 /// Extract a 4b integer.
-#[no_mangle]
-extern "C" fn beacon_data_int(parser: *mut Datap) -> c_int {
+fn beacon_data_int(parser: *mut Datap) -> c_int {
     if parser.is_null() {
         return 0;
     }
@@ -289,8 +286,7 @@ extern "C" fn beacon_data_int(parser: *mut Datap) -> c_int {
 }
 
 /// Extract a 2b integer.
-#[no_mangle]
-extern "C" fn beacon_data_short(parser: *mut Datap) -> c_short {
+fn beacon_data_short(parser: *mut Datap) -> c_short {
     if parser.is_null() {
         return 0;
     }
@@ -317,8 +313,7 @@ extern "C" fn beacon_data_short(parser: *mut Datap) -> c_short {
 }
 
 /// Get the amount of data left to parse.
-#[no_mangle]
-extern "C" fn beacon_data_length(parser: *mut Datap) -> c_int {
+fn beacon_data_length(parser: *mut Datap) -> c_int {
     if parser.is_null() {
         return 0;
     }
@@ -329,9 +324,8 @@ extern "C" fn beacon_data_length(parser: *mut Datap) -> c_int {
 }
 
 /// Extract a length-prefixed binary blob. The size argument may be NULL. If an address is provided, size is populated with the number-of-bytes extracted.
-#[no_mangle]
 #[allow(clippy::cast_possible_wrap)]
-extern "C" fn beacon_data_extract(parser: *mut Datap, size: *mut c_int) -> *mut c_char {
+fn beacon_data_extract(parser: *mut Datap, size: *mut c_int) -> *mut c_char {
     if parser.is_null() {
         return ptr::null_mut();
     }
@@ -375,8 +369,7 @@ extern "C" fn beacon_data_extract(parser: *mut Datap, size: *mut c_int) -> *mut 
 }
 
 /// Allocate memory to format complex or large output.
-#[no_mangle]
-extern "C" fn beacon_format_alloc(format: *mut Formatp, maxsz: c_int) {
+fn beacon_format_alloc(format: *mut Formatp, maxsz: c_int) {
     if format.is_null() {
         return;
     }
@@ -410,8 +403,7 @@ extern "C" fn beacon_format_alloc(format: *mut Formatp, maxsz: c_int) {
 }
 
 /// Resets the format object to its default state (prior to re-use).
-#[no_mangle]
-extern "C" fn beacon_format_reset(format: *mut Formatp) {
+fn beacon_format_reset(format: *mut Formatp) {
     if format.is_null() {
         return;
     }
@@ -432,8 +424,7 @@ extern "C" fn beacon_format_reset(format: *mut Formatp) {
 }
 
 /// Append data to this format object.
-#[no_mangle]
-extern "C" fn beacon_format_append(format: *mut Formatp, text: *const c_char, len: c_int) {
+fn beacon_format_append(format: *mut Formatp, text: *const c_char, len: c_int) {
     if format.is_null() {
         return;
     }
@@ -457,7 +448,6 @@ extern "C" fn beacon_format_append(format: *mut Formatp, text: *const c_char, le
 }
 
 /// Append a formatted string to this object.
-#[no_mangle]
 #[allow(clippy::cast_possible_wrap)]
 unsafe extern "C" fn beacon_format_printf(format: *mut Formatp, fmt: *const c_char, mut args: ...) {
     if format.is_null() {
@@ -488,8 +478,7 @@ unsafe extern "C" fn beacon_format_printf(format: *mut Formatp, fmt: *const c_ch
 
 /// Extract formatted data into a single string. Populate the passed in size variable with the length of this string.
 /// These parameters are suitable for use with the `BeaconOutput` function.
-#[no_mangle]
-extern "C" fn beacon_format_to_string(format: *mut Formatp, size: *mut c_int) -> *mut c_char {
+fn beacon_format_to_string(format: *mut Formatp, size: *mut c_int) -> *mut c_char {
     if format.is_null() {
         return ptr::null_mut();
     }
@@ -508,8 +497,7 @@ extern "C" fn beacon_format_to_string(format: *mut Formatp, size: *mut c_int) ->
 }
 
 /// Free the format object.
-#[no_mangle]
-extern "C" fn beacon_format_free(format: *mut Formatp) {
+fn beacon_format_free(format: *mut Formatp) {
     if format.is_null() {
         return;
     }
@@ -541,8 +529,7 @@ extern "C" fn beacon_format_free(format: *mut Formatp) {
 }
 
 /// Append a 4b integer (big endian) to this object.
-#[no_mangle]
-extern "C" fn beacon_format_int(format: *mut Formatp, value: c_int) {
+fn beacon_format_int(format: *mut Formatp, value: c_int) {
     if format.is_null() {
         return;
     }
@@ -573,20 +560,17 @@ extern "C" fn beacon_format_int(format: *mut Formatp, value: c_int) {
 }
 
 /// Send output to the Beacon operator.
-#[no_mangle]
-extern "C" fn beacon_output(_type: c_int, data: *mut c_char, len: c_int) {
+fn beacon_output(_type: c_int, data: *mut c_char, len: c_int) {
     unsafe { OUTPUT.append_char_array(data, len) }
 }
 
 /// Retrieves the output data from the beacon.
-#[no_mangle]
 #[allow(static_mut_refs)]
-pub extern "C" fn beacon_get_output_data() -> &'static mut Carrier {
+pub fn beacon_get_output_data() -> &'static mut Carrier {
     unsafe { &mut OUTPUT }
 }
 
 /// Format and present output to the Beacon operator.
-#[no_mangle]
 unsafe extern "C" fn beacon_printf(_type: c_int, fmt: *mut c_char, mut args: ...) {
     let mut s = String::new();
 
@@ -606,8 +590,7 @@ unsafe extern "C" fn beacon_printf(_type: c_int, fmt: *mut c_char, mut args: ...
 ///
 /// # Returns
 /// Returns TRUE if the token was successfully applied, FALSE otherwise.
-#[no_mangle]
-extern "C" fn beacon_use_token(token: HANDLE) -> BOOL {
+fn beacon_use_token(token: HANDLE) -> BOOL {
     match unsafe { SetThreadToken(Some(std::ptr::null()), token) } {
         Ok(()) => TRUE,
         Err(_) => FALSE,
@@ -616,8 +599,7 @@ extern "C" fn beacon_use_token(token: HANDLE) -> BOOL {
 
 /// Drop the current thread token. Use this over direct calls to `RevertToSelf`.
 /// This function cleans up other state information about the token.
-#[no_mangle]
-extern "C" fn beacon_revert_token() {
+fn beacon_revert_token() {
     if let Ok(()) = unsafe { RevertToSelf() } {
     } else {
         // warn!("RevertToSelf Failed!");
@@ -628,8 +610,7 @@ extern "C" fn beacon_revert_token() {
 ///
 /// # Returns
 /// Returns TRUE if Beacon is in a high-integrity context.
-#[no_mangle]
-extern "C" fn beacon_is_admin() -> BOOL {
+fn beacon_is_admin() -> BOOL {
     let mut token: HANDLE = HANDLE(0);
     let token_elevated: TOKEN_ELEVATION = TOKEN_ELEVATION { TokenIsElevated: 0 };
 
@@ -660,16 +641,14 @@ extern "C" fn beacon_is_admin() -> BOOL {
 }
 
 /// Populate the specified buffer with the x86 or x64 spawnto value configured for this Beacon session.
-#[no_mangle]
-extern "C" fn beacon_get_spawn_to(_x86: BOOL, _buffer: *const c_char, _length: c_int) {
+fn beacon_get_spawn_to(_x86: BOOL, _buffer: *const c_char, _length: c_int) {
     unimplemented!();
 }
 
 /// This function will inject the specified payload into an existing process.
 /// Use `payload_offset` to specify the offset within the payload to begin execution.
 /// The arg value is for arguments. arg may be NULL.
-#[no_mangle]
-extern "C" fn beacon_inject_process(
+fn beacon_inject_process(
     _hproc: HANDLE,
     pid: c_int,
     payload: *const c_char,
@@ -740,8 +719,7 @@ extern "C" fn beacon_inject_process(
 ///
 /// # Arguments
 /// The `arg` value is for arguments, which may be NULL.
-#[no_mangle]
-extern "C" fn beacon_inject_temporary_process(
+fn beacon_inject_temporary_process(
     _pinfo: *const PROCESS_INFORMATION,
     _pid: c_int,
     _payload: *const c_char,
@@ -755,8 +733,7 @@ extern "C" fn beacon_inject_temporary_process(
 
 /// This function spawns a temporary process accounting for ppid, spawnto, and blockdlls options.
 /// Grab the handle from `PROCESS_INFORMATION` to inject into or manipulate this process.
-#[no_mangle]
-extern "C" fn beacon_spawn_temporary_process(
+fn beacon_spawn_temporary_process(
     _x86: BOOL,
     _ignore_token: BOOL,
     _si: *const STARTUPINFOA,
@@ -766,8 +743,8 @@ extern "C" fn beacon_spawn_temporary_process(
 }
 
 /// This function cleans up some handles that are often forgotten about. Call this when you're done interacting with the handles for a process. You don't need to wait for the process to exit or finish.
-#[no_mangle]
-extern "C" fn beacon_cleanup_process(pinfo: *const PROCESS_INFORMATION) {
+
+fn beacon_cleanup_process(pinfo: *const PROCESS_INFORMATION) {
     unsafe {
         let _ = CloseHandle((*pinfo).hProcess);
         let _ = CloseHandle((*pinfo).hThread);
@@ -775,8 +752,7 @@ extern "C" fn beacon_cleanup_process(pinfo: *const PROCESS_INFORMATION) {
 }
 
 /// Convert the src string to a UTF16-LE wide-character string, using the target's default encoding. max is the size (in bytes!) of the destination buffer.
-#[no_mangle]
-extern "C" fn to_wide_char(src: *const c_char, dst: *mut c_short, max: c_int) -> BOOL {
+fn to_wide_char(src: *const c_char, dst: *mut c_short, max: c_int) -> BOOL {
     if src.is_null() {
         return FALSE;
     }
@@ -802,8 +778,7 @@ extern "C" fn to_wide_char(src: *const c_char, dst: *mut c_short, max: c_int) ->
     TRUE
 }
 
-#[no_mangle]
-pub extern "C" fn swap_endianness(src: u32) -> u32 {
+pub fn swap_endianness(src: u32) -> u32 {
     let test: u32 = 0x0000_00ff;
 
     // if test is 0xff00, then we are little endian, otherwise big endian

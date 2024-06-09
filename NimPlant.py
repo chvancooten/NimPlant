@@ -220,18 +220,6 @@ def compile_rust(binary_type, xor_key, config, debug=False):
     # TODO: Argparse
     # TODO: Update CI/CD (+yara?)
 
-    # Check if opsec profile has been applied
-    try:
-        with open(
-            os.path.expanduser("~/.cargo/config.toml"), "r", encoding="utf-8"
-        ) as f:
-            opsec_enabled = "-Zlocation-detail=none" in f.read()
-    except FileNotFoundError:
-        opsec_enabled = False
-
-    if not opsec_enabled:
-        print("NOTE: Follow the tips in 'client-rs/Cargo.toml' for increased opsec.")
-
     # Construct compilation command
     target_path = "client-rs/target/"
     compile_command = "cargo build --manifest-path=client-rs/Cargo.toml -q"
@@ -266,6 +254,18 @@ def compile_rust(binary_type, xor_key, config, debug=False):
         case "raw":
             shellcode_from_dll("rust", xor_key, config, debug)
             return
+
+    # Check if opsec profile has been applied
+    try:
+        with open(
+            os.path.expanduser("~/.cargo/config.toml"), "r", encoding="utf-8"
+        ) as f:
+            opsec_enabled = "-Zlocation-detail=none" in f.read()
+    except FileNotFoundError:
+        opsec_enabled = False
+
+    if not opsec_enabled:
+        print("NOTE: Follow the tips in 'client-rs/Cargo.toml' for increased opsec.")
 
     # Sleep mask enabled only if defined in config.toml
     sleep_mask_enabled = config["nimplant"]["sleepMask"]

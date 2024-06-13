@@ -84,13 +84,13 @@ An overview of settings is provided below.
 
 ### Compilation
 
-Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python NimPlant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, `rust`, `nim-debug`, or `rust-debug`). Files will be written to `client/bin/` or `client-rs/bin/`, respectively.
+Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python NimPlant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, `rust`, `nim-debug`, or `rust-debug` - will compile Nim by default). Files will be written to `client/bin/` or `client-rs/bin/`, respectively.
 
 You may pass the `rotatekey` argument to generate and use a new XOR key during compilation.
 
 **Notes**:
 - NimPlant only supports x64 at this time!
-- The entrypoint for DLL files is `Update`, which is triggered by DllMain for all entrypoints. This means you can use e.g. `rundll32 .\NimPlant.dll,Update` to trigger, or use your LOLBIN of choice to sideload it (may need some modifications in `client/NimPlant.nim`)
+- The entrypoint for DLL files is `Update`, which is triggered by DllMain for all entrypoints. This means you can use e.g. `rundll32 .\NimPlant.dll,Update` to trigger, or use your LOLBIN of choice to sideload it (may need some modifications in `client/NimPlant.nim` or `client-rs/src/lib.rs`)
 
 ```
 PS C:\NimPlant> python .\NimPlant.py compile all

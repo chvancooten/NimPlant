@@ -10,6 +10,9 @@
 #
 # -----
 
+# TODO: Update CI/CD (+yara?)
+
+import argparse
 import os
 import random
 import sys
@@ -45,20 +48,6 @@ def print_banner():
                                                                                                   
         A light-weight stage 1 implant and C2 written in Nim|Rust and Python
         By Cas van Cooten (@chvancooten)
-    """
-    )
-
-
-def print_usage():
-    print(
-        """
-    Usage:
-        python3 NimPlant.py command [required args] <optional args>
-
-    Acceptable commands:
-        compile [exe / exe-selfdelete / dll / raw / all] <nim / rust / nim-debug / rust-debug> <rotatekey>
-        server <server name>
-        cleanup
     """
     )
 
@@ -217,9 +206,6 @@ def compile_rust_debug(binary_type, xor_key, config):
 
 
 def compile_rust(binary_type, xor_key, config, debug=False):
-    # TODO: Argparse
-    # TODO: Update CI/CD (+yara?)
-
     # Construct compilation command
     target_path = "client-rs/target/"
     compile_command = "cargo build --manifest-path=client-rs/Cargo.toml -q"
@@ -234,7 +220,8 @@ def compile_rust(binary_type, xor_key, config, debug=False):
             )
     else:
         print(
-            "WARNING: Could not determine the target toolchain (is Rustup installed correctly?). NimPlant may not compile correctly."
+            "WARNING: Could not determine the target toolchain (is Rustup installed correctly?).",
+            "NimPlant may not compile correctly.",
         )
 
     if os.name != "nt":
@@ -308,7 +295,42 @@ def compile_rust(binary_type, xor_key, config, debug=False):
         os.rename(target_path, bin_path)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Compile command
+    compile_parser = subparsers.add_parser("compile", help="Compile the implant.")
+    compile_parser.add_argument(
+        "binary_type",
+        choices=["exe", "exe-selfdelete", "dll", "raw", "bin", "all"],
+        help="Type of binary to compile.",
+    )
+    compile_parser.add_argument(
+        "implant_type",
+        choices=["nim", "nim-debug", "rust", "rust-debug"],
+        nargs="?",
+        default="nim",
+        help="Type of implant to compile.",
+    )
+    compile_parser.add_argument(
+        "-r", "--rotatekey", action="store_true", help="Rotate the XOR key."
+    )
+
+    # Server command
+    server_parser = subparsers.add_parser("server", help="Start the server.")
+    server_parser.add_argument(
+        "server_name", nargs="?", default="", help="Name of the server."
+    )
+
+    # Cleanup command
+    subparsers.add_parser("cleanup", help="Clean up server files.")
+
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     print_banner()
 
     if not os.path.isfile("config.toml"):
@@ -318,96 +340,63 @@ def main():
         )
         exit(1)
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "compile":
-            if len(sys.argv) > 3 and sys.argv[3].lower() in [
-                "nim",
-                "nim-debug",
-                "rust",
-                "rust-debug",
+    if args.command == "compile":
+        xor_key = get_xor_key(args.rotatekey)
+        compile_implant(args.implant_type, args.binary_type, xor_key)
+
+        out_path = (
+            "client-rs/bin" if args.implant_type.startswith("rust") else "client/bin"
+        )
+        print(f"Done compiling! You can find compiled binaries in '{out_path}'.")
+
+    elif args.command == "server":
+        from server.server import main as server_main
+
+        xor_key = get_xor_key()
+        try:
+            name = sys.argv[2]
+            server_main(xor_key, name)
+        except IndexError:
+            server_main(xor_key, "")
+
+    elif args.command == "cleanup":
+        from shutil import rmtree
+
+        # Confirm if the user is sure they want to delete all files
+        print(
+            "WARNING: This will delete ALL NimPlant server data:",
+            "Uploads/downloads, logs, and the database!",
+            "Are you sure you want to continue? (y/n):",
+            end=" ",
+        )
+
+        if input().lower() != "y":
+            print("Aborting...")
+            exit(0)
+
+        print("Cleaning up...")
+
+        try:
+            # Clean up files
+            for filepath in ["server/nimplant.db"]:
+                if os.path.exists(filepath) and os.path.isfile(filepath):
+                    os.remove(filepath)
+
+            # Clean up directories
+            for dirpath in [
+                "server/downloads",
+                "server/logs",
+                "server/uploads",
             ]:
-                implant = sys.argv[3].lower()
-            else:
-                implant = "nim"
+                if os.path.exists(dirpath) and os.path.isdir(dirpath):
+                    rmtree(dirpath)
 
-            if len(sys.argv) > 2 and sys.argv[2].lower() in [
-                "exe",
-                "exe-selfdelete",
-                "dll",
-                "raw",
-                "bin",
-                "all",
-            ]:
-                binary = sys.argv[2].lower()
-            else:
-                binary = "all"
-
-            if "rotatekey" in sys.argv:
-                xor_key = get_xor_key(True)
-            else:
-                xor_key = get_xor_key()
-
-            compile_implant(implant, binary, xor_key)
-
-            out_path = "client-rs/bin" if implant.startswith("rust") else "client/bin"
-            print(f"Done compiling! You can find compiled binaries in '{out_path}'.")
-
-        elif sys.argv[1] == "server":
-            xor_key = get_xor_key()
-            from server.server import main as server_main
-
-            try:
-                name = sys.argv[2]
-                server_main(xor_key, name)
-            except IndexError:
-                server_main(xor_key, "")
-
-        elif sys.argv[1] == "cleanup":
-            from shutil import rmtree
-
-            # Confirm if the user is sure they want to delete all files
+            print("Cleaned up NimPlant server files!")
+        except OSError:
             print(
-                "WARNING: This will delete ALL NimPlant server data:",
-                "Uploads/downloads, logs, and the database!",
-                "Are you sure you want to continue? (y/n):",
-                end=" ",
+                "ERROR: Could not clean up all NimPlant server files.",
+                "Do you have the right privileges?",
             )
-
-            if input().lower() == "y":
-                print("Cleaning up...")
-
-                try:
-                    # Clean up files
-                    for filepath in ["server/nimplant.db"]:
-                        if os.path.exists(filepath) and os.path.isfile(filepath):
-                            os.remove(filepath)
-
-                    # Clean up directories
-                    for dirpath in [
-                        "server/downloads",
-                        "server/logs",
-                        "server/uploads",
-                    ]:
-                        if os.path.exists(dirpath) and os.path.isdir(dirpath):
-                            rmtree(dirpath)
-
-                    print("Cleaned up NimPlant server files!")
-                except OSError:
-                    print(
-                        "ERROR: Could not clean up all NimPlant server files.",
-                        "Do you have the right privileges?",
-                    )
-
-            else:
-                print("Aborting...")
-
-        else:
-            print_usage()
-            print("ERROR: Unrecognized command.")
-            exit(1)
-    else:
-        print_usage()
-        exit(1)
 
 
 if __name__ == "__main__":

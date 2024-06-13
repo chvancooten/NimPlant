@@ -23,6 +23,14 @@ strip = true
 codegen-units = 1
 panic = "abort"
 
+# We still optimize for size in debug mode,
+# because the MingW target results in crazy 
+# large debug binaries otherwise
+[profile.dev]
+opt-level = "z"
+split-debuginfo = "packed"
+strip = true
+
 [lib]
 name = "nimplant"
 crate-type = ["cdylib"]

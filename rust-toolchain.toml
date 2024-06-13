@@ -1,0 +1,4 @@
+# We always use the GNU toolchain to prevent shellcode stability issues
+# If on Windows, the MSVC toolchain may be used instead (if the raw format is not used)
+[toolchain]
+channel = "nightly-x86_64-pc-windows-gnu"

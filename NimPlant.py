@@ -224,9 +224,21 @@ def compile_rust(binary_type, xor_key, config, debug=False):
     target_path = "client-rs/target/"
     compile_command = "cargo build --manifest-path=client-rs/Cargo.toml -q"
 
+    # Get the output of `rustup show` to determine the toolchain
+    rustup_show = os.popen("rustup show").read()
+    if "x86_64-pc-windows-msvc" in rustup_show:
+        if binary_type == "raw":
+            print(
+                "WARNING: Generated shellcode may not work correctly when using MSVC toolchain.",
+                "Please use the windows-gnu toolchain instead.",
+            )
+    else:
+        print(
+            "WARNING: Could not determine the target toolchain (is Rustup installed correctly?). NimPlant may not compile correctly."
+        )
+
     if os.name != "nt":
         target_path = target_path + "x86_64-pc-windows-gnu/"
-        compile_command = compile_command + " --target x86_64-pc-windows-gnu"
 
         # When cross-compiling, we need to tell sodiumoxide to use
         # a pre-compiled version libsodium (which is packaged)
@@ -301,7 +313,8 @@ def main():
 
     if not os.path.isfile("config.toml"):
         print(
-            "ERROR: No configuration file found. Please create 'config.toml' based on the example configuration before use."
+            "ERROR: No configuration file found. Please create 'config.toml'",
+            "based on the example configuration before use.",
         )
         exit(1)
 
@@ -353,9 +366,12 @@ def main():
             from shutil import rmtree
 
             # Confirm if the user is sure they want to delete all files
-            print("WARNING: This will delete ALL NimPlant server data:")
-            print("         uploads/downloads, logs, and the database!")
-            print("         Are you sure you want to continue? (y/n):", end=" ")
+            print(
+                "WARNING: This will delete ALL NimPlant server data:",
+                "Uploads/downloads, logs, and the database!",
+                "Are you sure you want to continue? (y/n):",
+                end=" ",
+            )
 
             if input().lower() == "y":
                 print("Cleaning up...")
@@ -378,7 +394,8 @@ def main():
                     print("Cleaned up NimPlant server files!")
                 except OSError:
                     print(
-                        "ERROR: Could not clean up all NimPlant server files. Do you have the right privileges?"
+                        "ERROR: Could not clean up all NimPlant server files.",
+                        "Do you have the right privileges?",
                     )
 
             else:

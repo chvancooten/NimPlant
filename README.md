@@ -84,7 +84,7 @@ An overview of settings is provided below.
 
 ### Compilation
 
-Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python NimPlant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, `rust`, `nim-debug`, or `rust-debug` - will compile Nim by default). Files will be written to `client/bin/` or `client-rs/bin/`, respectively.
+Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python nimplant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, `rust`, `nim-debug`, or `rust-debug` - will compile Nim by default). Files will be written to `client/bin/` or `client-rs/bin/`, respectively.
 
 You may pass the `rotatekey` argument to generate and use a new XOR key during compilation.
 
@@ -93,7 +93,7 @@ You may pass the `rotatekey` argument to generate and use a new XOR key during c
 - The entrypoint for DLL files is `Update`, which is triggered by DllMain for all entrypoints. This means you can use e.g. `rundll32 .\NimPlant.dll,Update` to trigger, or use your LOLBIN of choice to sideload it (may need some modifications in `client/NimPlant.nim` or `client-rs/src/lib.rs`)
 
 ```
-PS C:\NimPlant> python .\NimPlant.py compile all
+PS C:\NimPlant> python .\nimplant.py compile all
 
                   *    *(#    #
                   **  **(##  ##
@@ -150,7 +150,7 @@ docker run --rm -it -v ${PWD}:/nimplant -p80:80 -p443:443 -p31337:31337 nimplant
 
 ### Usage
 
-Once you have your binaries ready, you can spin up your NimPlant server! No additional configuration is necessary as it reads from the same `config.toml` file. To launch a server, simply run `python NimPlant.py server` (with sudo privileges if running on Linux). You can use the console once a Nimplant checks in, or access the web interface at `http://localhost:31337` (by default).
+Once you have your binaries ready, you can spin up your NimPlant server! No additional configuration is necessary as it reads from the same `config.toml` file. To launch a server, simply run `python nimplant.py server` (with sudo privileges if running on Linux). You can use the console once a Nimplant checks in, or access the web interface at `http://localhost:31337` (by default).
 
 **Notes**:
 - If you are running your NimPlant server externally from the machine where binaries are compiled, make sure that both `config.toml` and `.xorkey` match. If not, NimPlant will not be able to connect.
@@ -158,10 +158,10 @@ Once you have your binaries ready, you can spin up your NimPlant server! No addi
 - If NimPlant cannot connect to a server or loses connection, it will retry 5 times with an exponential backoff time before attempting re-registration. If it fails to register 5 more times (same backoff logic), it will kill itself. The backoff triples the sleep time on each failed attempt. For example, if the sleep time is 10 seconds, it will wait 10, then 30 (3^1 * 10), then 90 (3^2 * 10), then 270 (3^3 * 10), then 810 seconds before giving up (these parameters are hardcoded but can be changed in `client/NimPlant.nim`).
 - Logs are stored in the `server/logs` directory. Each server instance creates a new log folder, and logs are split per console/nimplant session. Downloads and uploads (including files uploaded via the web GUI) are stored in the `server/uploads` and `server/downloads` directories respectively.
 - Nimplant and server details are stored in an SQLite database at `server/nimplant.db`. This data is also used to recover Nimplants after a server restart.
-- Logs, uploaded/downloaded files, and the database can be cleaned up by running `NimPlant.py` with the `cleanup` flag. Caution: This will purge everything, so make sure to back up what you need first!
+- Logs, uploaded/downloaded files, and the database can be cleaned up by running `nimplant.py` with the `cleanup` flag. Caution: This will purge everything, so make sure to back up what you need first!
 
 ```
-PS C:\NimPlant> python .\NimPlant.py server     
+PS C:\NimPlant> python .\nimplant.py server     
 
                   *    *(#    #
                   **  **(##  ##

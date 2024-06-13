@@ -1,14 +1,13 @@
 #!/usr/bin/python3
 # pylint: disable=import-outside-toplevel
 
-# -----
-#
-#   NimPlant - A light-weight stage 1 implant and C2 written in Nim|Rust and Python
-#   By Cas van Cooten (@chvancooten)
-#
-#   This is a wrapper script to configure and generate NimPlant and its C2 server
-#
-# -----
+"""
+NimPlant - A light-weight stage 1 implant and C2 written in Nim|Rust and Python
+By Cas van Cooten (@chvancooten)
+
+This is a wrapper script to configure and generate NimPlant and its C2 server.
+"""
+
 
 # TODO: Update CI/CD (+yara?)
 
@@ -22,6 +21,7 @@ from client.dist.srdi.ShellcodeRDI import ConvertToShellcode, HashFunctionName
 
 
 def print_banner():
+    """Print the NimPlant banner."""
     print(
         r"""
                   *    *(#    #             
@@ -53,6 +53,7 @@ def print_banner():
 
 
 def get_xor_key(force_new=False):
+    """Get the XOR key for pre-crypto operations."""
     if os.path.isfile(".xorkey") and not force_new:
         file = open(".xorkey", "r", encoding="utf-8")
         xor_key = int(file.read())
@@ -69,6 +70,7 @@ def get_xor_key(force_new=False):
 
 
 def shellcode_from_dll(lang, xor_key, config, debug=False):
+    """Convert the DLL implant to shellcode using sRDI."""
     if lang == "nim":
         dll_path = "client/bin/NimPlant.dll"
         if debug:
@@ -101,6 +103,7 @@ def shellcode_from_dll(lang, xor_key, config, debug=False):
 
 
 def compile_implant(implant_type, binary_type, xor_key):
+    """Compile the implant based on the specified type and binary type."""
     # Parse config for certain compile-time tasks
     config_path = os.path.abspath(
         os.path.join(os.path.dirname(sys.argv[0]), "config.toml")
@@ -146,21 +149,27 @@ def compile_implant(implant_type, binary_type, xor_key):
 
 
 def compile_nim_debug(binary_type, xor_key, config):
+    """Compile the Nim implant with debugging enabled."""
     if binary_type == "exe-selfdelete":
-        print("ERROR: Cannot compile self-deleting NimPlant with debugging enabled!")
         print(
-            "       Please test with the regular executable first, then compile the self-deleting version."
+            "ERROR: Cannot compile self-deleting NimPlant with debugging enabled!\n"
+            "Please test with the regular executable first, "
+            "then compile the self-deleting version.\n"
+            "Skipping this build..."
         )
-        print("       Skipping this build...")
         return
 
     compile_nim(binary_type, xor_key, config, debug=True)
 
 
 def compile_nim(binary_type, xor_key, config, debug=False):
+    """Compile the Nim implant."""
     # Construct compilation command
     if binary_type == "exe" or binary_type == "exe-selfdelete" or binary_type == "dll":
-        compile_command = f"nim c --hints:off --warnings:off -d:xor_key={xor_key} -d:release -d:strip -d:noRes"
+        compile_command = (
+            "nim c -d:release -d:strip -d:noRes"
+            + f"-d:xor_key={xor_key} --hints:off --warnings:off"
+        )
 
         if debug:
             compile_command = compile_command + " -d:verbose"
@@ -181,7 +190,8 @@ def compile_nim(binary_type, xor_key, config, debug=False):
         if binary_type == "dll":
             compile_command = (
                 compile_command
-                + " -o:client/bin/NimPlant.dll --app=lib --nomain -d:exportDll --passL:-Wl,--dynamicbase --gc:orc"
+                + " -o:client/bin/NimPlant.dll --app=lib --nomain -d:exportDll"
+                + " --passL:-Wl,--dynamicbase --gc:orc"
             )
 
         # Sleep mask enabled only if defined in config.toml
@@ -202,10 +212,12 @@ def compile_nim(binary_type, xor_key, config, debug=False):
 
 
 def compile_rust_debug(binary_type, xor_key, config):
+    """Compile the Rust implant with debugging enabled."""
     compile_rust(binary_type, xor_key, config, debug=True)
 
 
 def compile_rust(binary_type, xor_key, config, debug=False):
+    """Compile the Rust implant."""
     # Construct compilation command
     target_path = "client-rs/target/"
     compile_command = "cargo build --manifest-path=client-rs/Cargo.toml -q"
@@ -296,6 +308,7 @@ def compile_rust(binary_type, xor_key, config, debug=False):
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -330,6 +343,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main():
+    """Main function for nimplant.py."""
     args = parse_args()
     print_banner()
 

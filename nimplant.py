@@ -16,6 +16,8 @@ import time
 import toml
 from client.dist.srdi.ShellcodeRDI import ConvertToShellcode, HashFunctionName
 
+# TODO: Fix CI/CD paths: https://github.com/chvancooten/NimPlant-private/actions/runs/9530913515/job/26271309362
+
 
 def print_banner():
     """Print the NimPlant banner."""

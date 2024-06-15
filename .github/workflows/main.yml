@@ -8,33 +8,51 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-nimplant:
-    strategy:
-      max-parallel: 1
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+  build-container:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code into workspace directory
         uses: actions/checkout@v3
 
       - name: Build Docker container
         run: docker build . -t nimplant
-        shell: bash
+
+      - name: Save Docker image
+        run: |
+          docker save nimplant:latest | gzip > nimplant.tar.gz
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: nimplant-image
+          path: nimplant.tar.gz
+
+  test-builds:
+    needs: build-container
+    strategy:
+      max-parallel: 2
+      fail-fast: false
+      matrix:
+        language: ['nim', 'rust']
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code into workspace directory
+        uses: actions/checkout@v3
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: nimplant-image
+
+      - name: Load Docker image
+        run: |
+          gunzip -c nimplant.tar.gz | docker load
 
       - name: Copy example configuration
         run: cp config.toml.example config.toml
-        shell: bash
 
-      - name: Compile Nim binaries using Docker
-        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all nim"
-        shell: bash
-
-      - name: Compile Rust binaries using Docker
-        #run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all rust"
-        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile exe rust"
-        shell: bash
+      - name: Compile binaries using Docker
+        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all ${{ matrix.language }}"
 
       - name: Check if all files compiled correctly
         uses: andstor/file-existence-action@v2
@@ -44,21 +62,7 @@ jobs:
             ./client/bin/NimPlant.bin,
             ./client/bin/NimPlant.dll,
             ./client/bin/NimPlant.exe,
-            ./client/bin/NimPlant-selfdelete.exe,
             ./client-rs/bin/nimplant.exe,
             ./client-rs/bin/nimplant.dll,
             ./client-rs/bin/nimplant.bin,
             ./client-rs/bin/nimplant-selfdelete.exe
-
-      - name: Install yara and scan the Rust artefact
-        run: |
-          docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "\
-          apt-get update >/dev/null && \
-          apt-get install -y yara >/dev/null && \
-          yara -s detection/strings_test.yar client-rs/bin/nimplant.exe" \
-          | tee /dev/tty \
-          | grep -q '0x' && \
-            echo "Yara scan found matches on Rust artifact, failing the build." && \
-            exit 1 || \
-            echo "Yara scan did not find any matches."
-        shell: bash

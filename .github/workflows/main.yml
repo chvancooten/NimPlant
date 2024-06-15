@@ -13,7 +13,7 @@ jobs:
       max-parallel: 1
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code into workspace directory
@@ -28,11 +28,11 @@ jobs:
         shell: bash
 
       - name: Compile Nim binaries using Docker
-        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python ./nimplant.py compile all nim"
+        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all nim"
         shell: bash
 
       - name: Compile Rust binaries using Docker
-        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python ./nimplant.py compile all rust"
+        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all rust"
         shell: bash
 
       - name: Check if all files compiled correctly

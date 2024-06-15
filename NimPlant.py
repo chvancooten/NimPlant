@@ -8,9 +8,6 @@ By Cas van Cooten (@chvancooten)
 This is a wrapper script to configure and generate NimPlant and its C2 server.
 """
 
-
-# TODO: Update CI/CD (+yara?)
-
 import argparse
 import os
 import random

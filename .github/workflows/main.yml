@@ -19,38 +19,45 @@ jobs:
       - name: Checkout code into workspace directory
         uses: actions/checkout@v3
 
-      - name: Install Python 3.10
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.10"
-
-      - name: Install Nim 1.6.12
-        uses: iffy/install-nim@v4
-        with:
-          version: binary:1.6.12
-
-      - name: Install Python dependencies for NimPlant
-        run: pip install -r ./server/requirements.txt
-
-      - name: Install Nim dependencies for NimPlant
-        working-directory: ./client
-        run: nimble install -d -y
-
-      - name: Install mingw-w64 on Linux
-        if: matrix.os == 'ubuntu-latest'
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          platform: x64
+      - name: Build Docker container
+        run: docker build . -t nimplant
+        shell: bash
 
       - name: Copy example configuration
         run: cp config.toml.example config.toml
         shell: bash
 
-      - name: Compile NimPlant (all binaries, Nim)
-        run: python nimplant.py compile all nim
+      - name: Compile Nim binaries using Docker
+        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python ./nimplant.py compile all nim"
+        shell: bash
+
+      - name: Compile Rust binaries using Docker
+        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python ./nimplant.py compile all rust"
+        shell: bash
 
       - name: Check if all files compiled correctly
         uses: andstor/file-existence-action@v2
         with:
           fail: true
-          files: "./client/bin/NimPlant.bin, ./client/bin/NimPlant.dll, ./client/bin/NimPlant.exe, ./client/bin/NimPlant-selfdelete.exe"
+          files: |
+            ./client/bin/NimPlant.bin,
+            ./client/bin/NimPlant.dll,
+            ./client/bin/NimPlant.exe,
+            ./client/bin/NimPlant-selfdelete.exe,
+            ./client-rs/bin/nimplant.exe,
+            ./client-rs/bin/nimplant.dll,
+            ./client-rs/bin/nimplant.bin,
+            ./client-rs/bin/nimplant-selfdelete.exe
+
+      - name: Install yara and scan the Rust artefact
+        run: |
+          docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "\
+          apt-get update >/dev/null && \
+          apt-get install -y yara >/dev/null && \
+          yara -s detection/strings_test.yar client-rs/bin/nimplant.exe" \
+          | tee /dev/tty \
+          | grep -q '0x' && \
+            echo "Yara scan found matches on Rust artifact, failing the build." && \
+            exit 1 || \
+            echo "Yara scan did not find any matches."
+        shell: bash

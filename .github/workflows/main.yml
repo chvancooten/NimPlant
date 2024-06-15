@@ -32,7 +32,8 @@ jobs:
         shell: bash
 
       - name: Compile Rust binaries using Docker
-        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all rust"
+        #run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all rust"
+        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile exe rust"
         shell: bash
 
       - name: Check if all files compiled correctly

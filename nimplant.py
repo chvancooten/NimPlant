@@ -255,6 +255,7 @@ def compile_rust(binary_type, xor_key, config, debug=False):
             compile_command = compile_command + " --bin=nimplant"
         case "exe-selfdelete":
             # TODO: Exe-Selfdelete
+            # TODO: Add to CI/CD as well
             print("RUST EXE-SELFDELETE NOT YET IMPLEMENTED.")
             exit(1)
         case "dll":

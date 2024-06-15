@@ -42,7 +42,6 @@ jobs:
               ./client/bin/NimPlant.exe
           - language: 'rust'
             paths: |
-#             ./client-rs/bin/nimplant-selfdelete.exe
               ./client-rs/bin/nimplant.bin
               ./client-rs/bin/nimplant.dll
               ./client-rs/bin/nimplant.exe

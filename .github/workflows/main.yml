@@ -33,7 +33,19 @@ jobs:
       max-parallel: 2
       fail-fast: false
       matrix:
-        language: ['nim', 'rust']
+        include:
+          - language: 'nim'
+            paths: |
+              ./client/bin/NimPlant-selfdelete.exe
+              ./client/bin/NimPlant.bin
+              ./client/bin/NimPlant.dll
+              ./client/bin/NimPlant.exe
+          - language: 'rust'
+            paths: |
+#             ./client-rs/bin/nimplant-selfdelete.exe
+              ./client-rs/bin/nimplant.bin
+              ./client-rs/bin/nimplant.dll
+              ./client-rs/bin/nimplant.exe
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code into workspace directory
@@ -54,15 +66,8 @@ jobs:
       - name: Compile binaries using Docker
         run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all ${{ matrix.language }}"
 
-      - name: Check if all files compiled correctly
+      - name: Check if all files compiled correctly for ${{ matrix.language }}
         uses: andstor/file-existence-action@v2
         with:
           fail: true
-          files: |
-            ./client/bin/NimPlant.bin,
-            ./client/bin/NimPlant.dll,
-            ./client/bin/NimPlant.exe,
-            ./client-rs/bin/nimplant.exe,
-            ./client-rs/bin/nimplant.dll,
-            ./client-rs/bin/nimplant.bin,
-            ./client-rs/bin/nimplant-selfdelete.exe
+          files: ${{ matrix.paths }}

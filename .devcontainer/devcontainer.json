@@ -6,21 +6,23 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.black-formatter",
-                "ms-python.pylint",
+                "GitHub.copilot-chat",
+                "GitHub.copilot",
+                "kosz78.nim",
+                "littlefoxteam.vscode-python-test-adapter",
                 "matklad.rust-analyzer",
-                "vadimcn.vscode-lldb",
+                "ms-azuretools.vscode-docker",
+                "ms-python.black-formatter",
+                "ms-python.isort",
+                "ms-python.pylint",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
                 "serayuzgur.crates",
                 "tamasfe.even-better-toml",
-                "GitHub.copilot",
-                "GitHub.copilot-chat",
-                "ms-python.isort",
-                "kosz78.nim",
-                "ms-python.vscode-pylance",
-                "ms-python.python",
-                "littlefoxteam.vscode-python-test-adapter"
-            ],
+                "vadimcn.vscode-lldb"
+            ]
         }
     },
+    "postCreateCommand": "apt-get update && apt-get install -y ssh",
     "remoteUser": "root"
 }

@@ -167,7 +167,7 @@ def compile_nim(binary_type, xor_key, config, debug=False):
     # Construct compilation command
     if binary_type == "exe" or binary_type == "exe-selfdelete" or binary_type == "dll":
         compile_command = (
-            "nim c -d:release -d:strip -d:noRes"
+            "nim c -d:release -d:strip -d:noRes "
             + f"-d:xor_key={xor_key} --hints:off --warnings:off"
         )
 
@@ -220,21 +220,22 @@ def compile_rust(binary_type, xor_key, config, debug=False):
     """Compile the Rust implant."""
     # Construct compilation command
     target_path = "client-rs/target/"
-    compile_command = "cargo build --manifest-path=client-rs/Cargo.toml -q"
+
+    # We always use the GNU toolchain to prevent shellcode stability issues
+    # If on Windows, the MSVC toolchain may be used instead (if the raw format is not used)
+    compile_command = (
+        "cargo build --manifest-path=client-rs/Cargo.toml -q "
+        + "--target=x86_64-pc-windows-gnu"
+    )
 
     # Get the output of `rustup show` to determine the toolchain
     rustup_show = os.popen("rustup show").read()
-    if "x86_64-pc-windows-msvc" in rustup_show:
+    if "x86_64-pc-windows-gnu" not in rustup_show:
         if binary_type == "raw":
             print(
                 "WARNING: Generated shellcode may not work correctly when using MSVC toolchain.",
                 "Please use the windows-gnu toolchain instead.",
             )
-    else:
-        print(
-            "WARNING: Could not determine the target toolchain (is Rustup installed correctly?).",
-            "NimPlant may not compile correctly.",
-        )
 
     if os.name != "nt":
         target_path = target_path + "x86_64-pc-windows-gnu/"

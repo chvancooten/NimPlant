@@ -7,16 +7,14 @@
 
 mod app;
 
-use app::debug::{allocate_console_debug_only, debug_println};
-
 fn main() {
     // Allocate a console if we're in debug mode
-    allocate_console_debug_only();
+    app::debug::allocate_console_debug_only();
 
     // Self-delete the binary if the feature is enabled
     #[cfg(feature = "selfdelete")]
-    if let Err(_e) = crate::app::self_delete::perform() {
-        debug_println!("Failed to self-delete: {:?}", _e);
+    if let Err(_e) = app::self_delete::perform() {
+        app::debug::debug_println!("Failed to self-delete: {:?}", _e);
     };
 
     app::main();

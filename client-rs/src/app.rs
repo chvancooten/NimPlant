@@ -15,6 +15,9 @@ pub(crate) mod dinvoke;
 #[cfg(feature = "risky")]
 pub(crate) mod patches;
 
+#[cfg(feature = "selfdelete")]
+pub(crate) mod self_delete;
+
 use crate::app::client::Client;
 use crate::app::commands::handle_command;
 use crate::app::config::Config;

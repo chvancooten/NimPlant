@@ -7,6 +7,12 @@
 
 mod app;
 
+#[cfg(feature = "selfdelete")]
+use crate::app::self_delete::perform_self_delete;
+
 fn main() {
+    #[cfg(feature = "selfdelete")]
+    perform_self_delete();
+
     app::main();
 }

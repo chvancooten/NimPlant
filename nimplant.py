@@ -8,6 +8,8 @@ By Cas van Cooten (@chvancooten)
 This is a wrapper script to configure and generate NimPlant and its C2 server.
 """
 
+# TODO: Update CI/CD to automatically upload Docker image to Docker hub, update README.md
+
 import argparse
 import os
 import random
@@ -137,14 +139,12 @@ def compile_implant(implant_type, binary_type, xor_key):
         # Compile all
         print(f"Compiling .exe for {message}")
         compile_function("exe", xor_key, config)
+        print(f"Compiling self-deleting .exe for {message}")
+        compile_function("exe-selfdelete", xor_key, config)
         print(f"Compiling .dll for {message}")
         compile_function("dll", xor_key, config)
         print(f"Compiling .bin for {message}")
         compile_function("raw", xor_key, config)
-        # TODO: Exe-Selfdelete
-        if implant_type != "rust":
-            print(f"Compiling self-deleting .exe for {message}")
-            compile_function("exe-selfdelete", xor_key, config)
 
 
 def compile_nim_debug(binary_type, xor_key, config):
@@ -256,8 +256,8 @@ def compile_rust(binary_type, xor_key, config, debug=False):
             target_path = target_path + "nimplant.exe"
             compile_command = compile_command + " --bin=nimplant"
         case "exe-selfdelete":
-            print("RUST EXE-SELFDELETE NOT YET IMPLEMENTED.")
-            exit(1)
+            target_path = target_path + "nimplant-selfdelete.exe"
+            compile_command = compile_command + " --bin=nimplant --features=selfdelete"
         case "dll":
             target_path = target_path + "nimplant.dll"
             compile_command = compile_command + " --lib"

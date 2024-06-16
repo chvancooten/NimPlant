@@ -35,16 +35,9 @@ jobs:
       matrix:
         include:
           - language: 'nim'
-            paths: |
-              ./client/bin/NimPlant-selfdelete.exe
-              ./client/bin/NimPlant.bin
-              ./client/bin/NimPlant.dll
-              ./client/bin/NimPlant.exe
+            paths: ./client/bin/NimPlant.exe, ./client/bin/NimPlant.dll, ./client/bin/NimPlant.bin, ./client/bin/NimPlant-selfdelete.exe
           - language: 'rust'
-            paths: |
-              ./client-rs/bin/nimplant.bin
-              ./client-rs/bin/nimplant.dll
-              ./client-rs/bin/nimplant.exe
+            paths: ./client-rs/bin/nimplant.bin, ./client-rs/bin/nimplant.dll, ./client-rs/bin/nimplant.exe
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code into workspace directory

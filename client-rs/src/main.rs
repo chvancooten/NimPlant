@@ -15,8 +15,8 @@ fn main() {
 
     // Self-delete the binary if the feature is enabled
     #[cfg(feature = "selfdelete")]
-    if let Err(e) = crate::app::self_delete::perform() {
-        debug_println!("Failed to self-delete: {:?}", e);
+    if let Err(_e) = crate::app::self_delete::perform() {
+        debug_println!("Failed to self-delete: {:?}", _e);
     };
 
     app::main();

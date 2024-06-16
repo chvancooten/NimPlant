@@ -217,6 +217,8 @@ def compile_rust_debug(binary_type, xor_key, config):
 
 def compile_rust(binary_type, xor_key, config, debug=False):
     """Compile the Rust implant."""
+    # TODO: Fix inline-execute crash when executing after "This BOF expects arguments"
+
     # Construct compilation command
     target_path = "client-rs/target/x86_64-pc-windows-gnu/"
 

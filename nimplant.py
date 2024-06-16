@@ -218,7 +218,7 @@ def compile_rust_debug(binary_type, xor_key, config):
 def compile_rust(binary_type, xor_key, config, debug=False):
     """Compile the Rust implant."""
     # Construct compilation command
-    target_path = "client-rs/target/"
+    target_path = "client-rs/target/x86_64-pc-windows-gnu/"
 
     # We always use the GNU toolchain to prevent shellcode stability issues
     # If on Windows, the MSVC toolchain may be used instead (if the raw format is not used)
@@ -237,8 +237,6 @@ def compile_rust(binary_type, xor_key, config, debug=False):
             )
 
     if os.name != "nt":
-        target_path = target_path + "x86_64-pc-windows-gnu/"
-
         # When cross-compiling, we need to tell sodiumoxide to use
         # a pre-compiled version libsodium (which is packaged)
         os.environ["SODIUM_LIB_DIR"] = os.path.abspath(
@@ -257,7 +255,9 @@ def compile_rust(binary_type, xor_key, config, debug=False):
             compile_command = compile_command + " --bin=nimplant"
         case "exe-selfdelete":
             target_path = target_path + "nimplant-selfdelete.exe"
-            compile_command = compile_command + " --bin=nimplant --features=selfdelete"
+            compile_command = (
+                compile_command + " --bin=nimplant-selfdelete --features=selfdelete"
+            )
         case "dll":
             target_path = target_path + "nimplant.dll"
             compile_command = compile_command + " --lib"

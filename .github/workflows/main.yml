@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code into workspace directory
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build Docker container
         run: docker build . -t nimplant
@@ -22,7 +22,7 @@ jobs:
           docker save nimplant:latest | gzip > nimplant.tar.gz
 
       - name: Upload Docker image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: nimplant-image
           path: nimplant.tar.gz
@@ -41,10 +41,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code into workspace directory
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download Docker image artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: nimplant-image
 
@@ -59,7 +59,7 @@ jobs:
         run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all ${{ matrix.language }}"
 
       - name: Check if all files compiled correctly for ${{ matrix.language }}
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           fail: true
           files: ${{ matrix.paths }}

@@ -90,23 +90,26 @@ impl Drop for MappedFunctions {
 pub struct Coffee<'a> {
     coff_buffer: &'a [u8],
     coff: Coff<'a>,
+    function_mapping: Option<&'a mut MappedFunctions>,
+    text_section_index: i32,
+    section_mapping: Vec<usize>,
 }
-
-/// Static variable that contains the mapped functions.
-static mut FUNCTION_MAPPING: Option<&mut MappedFunctions> = None;
-
-/// Static variable that contains the index of the .text section.
-static mut TEXT_SECTION_INDEX: i32 = 0;
-
-/// Static variable that contains the mapped sections.
-static mut SECTION_MAPPING: Vec<usize> = Vec::new();
 
 impl<'a> Coffee<'a> {
     /// Creates a new `CoffLoader` struct from a slice of bytes representing a COFF file.
     pub fn new(coff_buffer: &'a [u8]) -> Result<Self, Box<dyn std::error::Error>> {
         let coff = Coff::parse(coff_buffer)?;
+        let function_mapping = None;
+        let text_section_index = 0;
+        let section_mapping = Vec::new();
 
-        Ok(Self { coff_buffer, coff })
+        Ok(Self {
+            coff_buffer,
+            coff,
+            function_mapping,
+            text_section_index,
+            section_mapping,
+        })
     }
 
     /// Executes a bof file by allocating memory for the bof and executing it.
@@ -115,15 +118,15 @@ impl<'a> Coffee<'a> {
     /// The default entrypoint name is go.
     /// The output of the bof is printed to stdout.
     pub fn execute(
-        &self,
+        &mut self,
         arguments: Option<*const u8>,
         argument_size: Option<usize>,
         entrypoint_name: &Option<String>,
     ) -> Result<String, Box<dyn std::error::Error>> {
         // Check if COFF is running on the current architecture
-        if self.is_x86()? && cfg!(target_arch = "x86_64") {
+        if is_x86(self.coff.header.machine)? && cfg!(target_arch = "x86_64") {
             return Err(format!("Cannot run x86 COFF on x86_64 architecture").into());
-        } else if self.is_x64()? && cfg!(target_arch = "x86") {
+        } else if is_x64(self.coff.header.machine)? && cfg!(target_arch = "x86") {
             return Err(format!("Cannot run x64 COFF on i686 architecture").into());
         }
 
@@ -152,52 +155,26 @@ impl<'a> Coffee<'a> {
         Ok(out_data)
     }
 
-    /// This is a bit too repetitive
-    /// Gets the __imp_(_) based on the architecture
-    fn get_imp_based_on_architecture(&self) -> Result<&str, Box<dyn std::error::Error>> {
-        match self.coff.header.machine {
-            COFF_MACHINE_X86 => Ok("__imp__"),
-            COFF_MACHINE_X86_64 => Ok("__imp_"),
-            _ => Err(format!("Unsupported architecture").into()),
-        }
-    }
-
-    /// Gets the 32-bit architecture based on the COFF machine type.
-    pub fn is_x86(&self) -> Result<bool, Box<dyn std::error::Error>> {
-        match self.coff.header.machine {
-            COFF_MACHINE_X86 => Ok(true),
-            COFF_MACHINE_X86_64 => Ok(false),
-            _ => Err(format!("Unsupported architecture").into()),
-        }
-    }
-
-    /// Gets the 64-bit architecture based on the COFF machine type.
-    pub fn is_x64(&self) -> Result<bool, Box<dyn std::error::Error>> {
-        match self.coff.header.machine {
-            COFF_MACHINE_X86 => Ok(false),
-            COFF_MACHINE_X86_64 => Ok(true),
-            _ => Err(format!("Unsupported architecture").into()),
-        }
-    }
-
     /// Gets the external or local function address from the symbol name and returns the result.
     /// When the symbol name is an internal function, it will return the address of the function
     /// in the `beacon_api` module.
     /// When the symbol name is an external function, it will return the procedure address of the function
     /// in the specified library after allocating using the mapping list.
     /// apisets can be shown in the symbol name.
-    fn get_import_from_symbol(&self, symbol: Symbol) -> Result<usize, Box<dyn std::error::Error>> {
+    fn get_import_from_symbol(
+        &mut self,
+        symbol: Symbol,
+    ) -> Result<usize, Box<dyn std::error::Error>> {
         // Get the global mapping list
-        if unsafe { FUNCTION_MAPPING.is_none() } {
+        if self.function_mapping.is_none() {
             unsafe {
-                FUNCTION_MAPPING = Some(&mut *MappedFunctions::new()?);
+                self.function_mapping = Some(&mut *MappedFunctions::new()?);
             }
         }
-        let mapping_list = unsafe {
-            FUNCTION_MAPPING
-                .as_mut()
-                .ok_or(format!("Function mapping is empty"))?
-        };
+        let mapping_list = self
+            .function_mapping
+            .as_mut()
+            .ok_or(format!("Function mapping is empty"))?;
 
         // Resolve the symbol name
         let raw_symbol_name = match &self.coff.strings {
@@ -209,7 +186,7 @@ impl<'a> Coffee<'a> {
         // debug!("Raw symbol name: {}", raw_symbol_name);
 
         let polished_import_name = raw_symbol_name
-            .split(self.get_imp_based_on_architecture()?) // Some Object files will have __imp_ while on 32-bit for some reason!
+            .split(&get_imp_based_on_architecture(self.coff.header.machine)?) // Some Object files will have __imp_ while on 32-bit for some reason!
             .last()
             .ok_or(format!("Failed to resolve import"))?
             .split('@')
@@ -298,7 +275,7 @@ impl<'a> Coffee<'a> {
 
     /// Allocates all the memory needed for each relocation and section.
     #[allow(clippy::cast_possible_wrap)]
-    fn allocate_bof_memory(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn allocate_bof_memory(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image
         // Note that the Windows loader limits the number of sections to 96.
         if self.coff.header.number_of_sections > 96 {
@@ -330,13 +307,11 @@ impl<'a> Coffee<'a> {
             // }
 
             if section.name()?.contains("text") {
-                unsafe {
-                    TEXT_SECTION_INDEX = i32::from(idx);
-                }
+                self.text_section_index = i32::from(idx);
             }
 
             // Push the section base to the section mapping
-            unsafe { SECTION_MAPPING.push(section_base as usize) };
+            self.section_mapping.push(section_base as usize);
 
             // Copy the sections into the allocated memory if it is initialized otherwise set the memory to 0
             if section.pointer_to_raw_data != 0 {
@@ -371,7 +346,8 @@ impl<'a> Coffee<'a> {
         }
 
         // Handle the relocations
-        for (index, section) in self.coff.sections.iter().enumerate() {
+        let sections_list = self.coff.sections.clone();
+        for (index, section) in sections_list.iter().enumerate() {
             if section.number_of_relocations > 0 {
                 // info!("Processing relocations for section: {}", section.name()?);
 
@@ -418,10 +394,8 @@ impl<'a> Coffee<'a> {
                                     // Get the target section base that is the section mapping with the symbol section number - 1
                                     let target_section_base = {
                                         if import_address_ptr == 0 {
-                                            unsafe {
-                                                SECTION_MAPPING
-                                                    [(symbol.section_number as usize) - 1]
-                                            }
+                                            self.section_mapping
+                                                [(symbol.section_number as usize) - 1]
                                         } else {
                                             0
                                         }
@@ -430,13 +404,13 @@ impl<'a> Coffee<'a> {
                                     // debug!("Relocation type: {:#?}", relocation.typ);
 
                                     // Calculate the relocation overwrite address
-                                    let relocation_overwrite_address =
-                                        (unsafe { SECTION_MAPPING[index] })
-                                            + (relocation.virtual_address as usize)
-                                            - section.virtual_address as usize;
+                                    let relocation_overwrite_address = (self.section_mapping
+                                        [index])
+                                        + (relocation.virtual_address as usize)
+                                        - section.virtual_address as usize;
 
                                     // Handle the relocations based on the architecture
-                                    if self.is_x64()? {
+                                    if is_x64(self.coff.header.machine)? {
                                         match relocation.typ {
                                             // The 64-bit VA of the relocation target.
                                             IMAGE_REL_AMD64_ADDR64 => {
@@ -614,7 +588,7 @@ impl<'a> Coffee<'a> {
                                                 .into());
                                             }
                                         }
-                                    } else if self.is_x86()? {
+                                    } else if is_x86(self.coff.header.machine)? {
                                         match relocation.typ {
                                             // The target's 32-bit VA.
                                             IMAGE_REL_I386_DIR32 => {
@@ -735,24 +709,23 @@ impl<'a> Coffee<'a> {
     }
 
     fn execute_bof(
-        &self,
+        &mut self,
         arguments: Option<*const u8>,
         argument_size: Option<usize>,
         entrypoint_name: &Option<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Check if any of the data-processing functions are present on the mapped functions
         // If so, throw a warning about the arguments
-        let mapped_function_names =
-            if let Some(function_mapping) = unsafe { FUNCTION_MAPPING.as_mut() } {
-                function_mapping
-                    .list
-                    .iter()
-                    .filter(|x| !x.name.is_empty())
-                    .map(|x| x.function_name.clone())
-                    .collect::<Vec<String>>()
-            } else {
-                Vec::new()
-            };
+        let mapped_function_names = if let Some(function_mapping) = self.function_mapping.as_mut() {
+            function_mapping
+                .list
+                .iter()
+                .filter(|x| !x.name.is_empty())
+                .map(|x| x.function_name.clone())
+                .collect::<Vec<String>>()
+        } else {
+            Vec::new()
+        };
 
         let data_functions = [
             format!("BeaconDataParse"),
@@ -790,7 +763,7 @@ impl<'a> Coffee<'a> {
                     };
 
                     if name.contains(entry_name.as_str()) {
-                        let entry_addr = unsafe { SECTION_MAPPING[(TEXT_SECTION_INDEX) as usize] }
+                        let entry_addr = self.section_mapping[(self.text_section_index) as usize]
                             .add(symbol.value as usize);
 
                         // Cast the entrypoint to a function
@@ -815,13 +788,11 @@ impl<'a> Coffee<'a> {
 
     /// Iterates through each section and frees the memory allocated for each section using `VirtualFree`.
     /// This is done to prevent memory leaks.
-    fn free_bof_memory(&self) {
-        unsafe {
-            FUNCTION_MAPPING = None;
-        }
+    fn free_bof_memory(&mut self) {
+        self.function_mapping = None;
 
         for (idx, _section) in self.coff.sections.iter().enumerate() {
-            let section_base = unsafe { SECTION_MAPPING[idx] };
+            let section_base = self.section_mapping[idx];
 
             if section_base == 0 {
                 continue;
@@ -831,5 +802,33 @@ impl<'a> Coffee<'a> {
                 let _ = VirtualFree(section_base as *mut c_void, 0, MEM_RELEASE);
             }
         }
+    }
+}
+
+// Various helper functions
+/// Gets the __imp_(_) based on the architecture
+fn get_imp_based_on_architecture(machine: u16) -> Result<String, Box<dyn std::error::Error>> {
+    match machine {
+        COFF_MACHINE_X86 => Ok("__imp__".into()),
+        COFF_MACHINE_X86_64 => Ok("__imp_".into()),
+        _ => Err(format!("Unsupported architecture").into()),
+    }
+}
+
+/// Gets the 32-bit architecture based on the COFF machine type.
+pub fn is_x86(machine: u16) -> Result<bool, Box<dyn std::error::Error>> {
+    match machine {
+        COFF_MACHINE_X86 => Ok(true),
+        COFF_MACHINE_X86_64 => Ok(false),
+        _ => Err(format!("Unsupported architecture").into()),
+    }
+}
+
+/// Gets the 64-bit architecture based on the COFF machine type.
+pub fn is_x64(machine: u16) -> Result<bool, Box<dyn std::error::Error>> {
+    match machine {
+        COFF_MACHINE_X86 => Ok(false),
+        COFF_MACHINE_X86_64 => Ok(true),
+        _ => Err(format!("Unsupported architecture").into()),
     }
 }

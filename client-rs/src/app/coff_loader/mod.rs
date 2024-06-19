@@ -86,7 +86,7 @@ impl Drop for MappedFunctions {
     }
 }
 
-/// `CoffLoader` is a struct that contains a slice of bytes representing a COFF file and a parsed COFF file.
+/// `Coffee` is a struct that contains a slice of bytes representing a COFF file and a parsed COFF file.
 pub struct Coffee<'a> {
     coff_buffer: &'a [u8],
     coff: Coff<'a>,
@@ -96,7 +96,7 @@ pub struct Coffee<'a> {
 }
 
 impl<'a> Coffee<'a> {
-    /// Creates a new `CoffLoader` struct from a slice of bytes representing a COFF file.
+    /// Creates a new `Coffee` struct from a slice of bytes representing a COFF file.
     pub fn new(coff_buffer: &'a [u8]) -> Result<Self, Box<dyn std::error::Error>> {
         let coff = Coff::parse(coff_buffer)?;
         let function_mapping = None;

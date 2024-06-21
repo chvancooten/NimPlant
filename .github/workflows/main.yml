@@ -52,6 +52,16 @@ jobs:
       - name: Checkout code into workspace directory
         uses: actions/checkout@v4
 
+      - name: Set Docker image tag
+        id: set_tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "::set-output name=tag::dev"
+          else
+            echo "::set-output name=tag::latest"
+          fi
+        shell: bash
+
       - name: Pull Docker image from Docker Hub
         run: docker pull ${{ vars.DOCKERHUB_USERNAME }}/nimplant:${{ steps.set_tag.outputs.tag }}
 

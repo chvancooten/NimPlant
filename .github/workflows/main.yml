@@ -30,11 +30,11 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: chvancooten
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push Docker image to Docker Hub
-        run: docker push nimplant:${{ steps.set_tag.outputs.tag }}
+        run: docker push chvancooten/nimplant:${{ steps.set_tag.outputs.tag }}
 
   test-builds:
     needs: build-container

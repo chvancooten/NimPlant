@@ -132,7 +132,7 @@ Done compiling! You can find compiled binaries in 'client/bin/'.
 
 Using Docker is easy and avoids dependency issues, as all required build-time and runtime dependencies are pre-installed in the container.
 
-To use Docker, you can use the public `chvancooten/nimplant` container from Docker Hub (built via CI/CD), or build the `Dockerfile` from source. 
+To use Docker, you can use the public `chvancooten/nimplant` container from [Docker Hub](https://hub.docker.com/r/chvancooten/nimplant) (built via CI/CD), or build the `Dockerfile` from source. 
 
 > To build from source, run the following from the main directory:
 > 
@@ -148,7 +148,7 @@ Once this is done, you can run the container from the command line to run the Ni
 docker run --rm -it -v ${PWD}:/nimplant -p80:80 -p443:443 -p31337:31337 chvancooten/nimplant:latest /bin/bash
 ```
 
-> Note: Make sure to tweak the command based on your preferences (volumen mounting / port forwarding). Also ensure that the container allows non-localhost connections in `config.toml`.
+> Note: Make sure to tweak the command based on your preferences (volume mounting / port forwarding). Also ensure that the container allows non-localhost connections in `config.toml`.
 
 ### Usage
 

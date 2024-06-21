@@ -53,13 +53,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Pull Docker image from Docker Hub
-        run: docker pull nimplant:latest
+        run: docker pull ${{ vars.DOCKERHUB_USERNAME }}/nimplant:${{ steps.set_tag.outputs.tag }}
 
       - name: Copy example configuration
         run: cp config.toml.example config.toml
 
       - name: Compile binaries using Docker
-        run: docker run -v ${PWD}:/nimplant nimplant /bin/bash -c "python3 ./nimplant.py compile all ${{ matrix.language }}"
+        run: docker run -v ${PWD}:/nimplant ${{ vars.DOCKERHUB_USERNAME }}/nimplant:${{ steps.set_tag.outputs.tag }} /bin/bash -c "python3 ./nimplant.py compile all ${{ matrix.language }}"
 
       - name: Check if all files compiled correctly for ${{ matrix.language }}
         uses: andstor/file-existence-action@v3

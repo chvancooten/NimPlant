@@ -8,8 +8,6 @@ By Cas van Cooten (@chvancooten)
 This is a wrapper script to configure and generate NimPlant and its C2 server.
 """
 
-# TODO: Update CI/CD to automatically upload Docker image to Docker hub, update README.md
-
 import argparse
 import os
 import random

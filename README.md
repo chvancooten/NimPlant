@@ -132,18 +132,20 @@ Done compiling! You can find compiled binaries in 'client/bin/'.
 
 Using Docker is easy and avoids dependency issues, as all required build-time and runtime dependencies are pre-installed in the container.
 
-To use Docker, you must first build the `Dockerfile` from source. From the main directory, run the following:
+To use Docker, you can use the public `chvancooten/nimplant` container from Docker Hub (built via CI/CD), or build the `Dockerfile` from source. 
 
-```bash
-docker build . -t nimplant
-```
+> To build from source, run the following from the main directory:
+> 
+> ```bash
+> docker build . -t nimplant
+> ```
 
-This will build a container tagged `nimplant:latest`. Note: this may take a while and produce a sizeable (~2.5G) container due to the development dependencies!
+This will build a container tagged `nimplant:latest`. Note: this may take a while and produce a sizeable container due to the development dependencies!
 
 Once this is done, you can run the container from the command line to run the NimPlant server or compile your artifacts.
 
 ```bash
-docker run --rm -it -v ${PWD}:/nimplant -p80:80 -p443:443 -p31337:31337 nimplant /bin/bash
+docker run --rm -it -v ${PWD}:/nimplant -p80:80 -p443:443 -p31337:31337 chvancooten/nimplant:latest /bin/bash
 ```
 
 > Note: Make sure to tweak the command based on your preferences (volumen mounting / port forwarding). Also ensure that the container allows non-localhost connections in `config.toml`.

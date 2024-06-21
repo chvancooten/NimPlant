@@ -1,4 +1,4 @@
-name: Test NimPlant builds
+name: Build NimPlant container and test builds
 
 on:
   push:

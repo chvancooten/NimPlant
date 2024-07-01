@@ -14,7 +14,7 @@ from server.util.config import config
 # Parse configuration from 'config.toml'
 try:
     initialSleepTime = config["nimplant"]["sleepTime"]
-    initialSleepJitter = config["nimplant"]["sleepTime"]
+    initialSleepJitter = config["nimplant"]["sleepJitter"]
     killDate = config["nimplant"]["killDate"]
 except KeyError as e:
     func.nimplant_print(

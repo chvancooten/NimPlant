@@ -4,11 +4,16 @@ pub(crate) fn get_request(
     url: &str,
     identifier: Option<&str>,
     user_agent: &str,
+    file_identifier: Option<&str>,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let mut request = ureq::get(url).set("User-Agent", user_agent);
 
     if let Some(id) = identifier {
         request = request.set("X-Identifier", id);
+    }
+
+    if let Some(file_id) = file_identifier {
+        request = request.set("X-Unique-ID", file_id);
     }
 
     let body = request.call()?.into_string()?;

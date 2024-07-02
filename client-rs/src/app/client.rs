@@ -54,6 +54,7 @@ impl Client {
             &(self.config.get_http_url()? + &self.config.get_path(&config::Path::Register)?),
             None,
             &self.user_agent,
+            None,
         )?;
 
         // Parse the JSON response and save our ID
@@ -122,6 +123,7 @@ impl Client {
             &(self.config.get_http_url()? + &self.config.get_path(&config::Path::Task)?),
             Some(&self.id),
             &self.user_agent,
+            None,
         )?;
 
         // Parse the JSON response body to get the task data, if present
@@ -225,17 +227,7 @@ impl Client {
         url = format!({url}{path}"/"{file_id});
 
         // Get the file
-        let response = ureq::get(&url)
-            .set(
-                "User-Agent",
-                self.config
-                    .get_http_user_agent()
-                    .unwrap_or_else(|_| format!("Failed to parse user agent when sending request."))
-                    .as_str(),
-            )
-            .set("X-Identifier", &self.id)
-            .set("X-Unique-ID", guid)
-            .call();
+        let response = http::get_request(&url, Some(&self.id), &self.user_agent, Some(&guid));
 
         // Error if we didn't get HTTP 200
         if let Err(e) = response {
@@ -243,7 +235,7 @@ impl Client {
         };
 
         // Error if we got an empty body
-        let response_body = response?.into_string()?;
+        let response_body = response?;
         if response_body.is_empty() {
             return Err(format!("Empty response body").into());
         };

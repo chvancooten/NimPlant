@@ -1,3 +1,5 @@
+.devcontainer
+.git
 .github
 .gitignore
 .venv

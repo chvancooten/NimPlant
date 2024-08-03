@@ -1,7 +1,7 @@
 rule SearchStrings
 {
     meta:
-        description = "Searches for specific strings in binaries and processes"
+        description = "Searches for NimPlant-specific strings on disk or in-memory. Usage: `yara64.exe -s .\\detection\\strings_test.yar .\\client-rs\\bin\\nimplant.exe`."
     
     strings:
         $nimplant_string1 = "nimplant" nocase

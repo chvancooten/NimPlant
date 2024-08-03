@@ -14,6 +14,8 @@ services:
     volumes:
       # Mount our NimPlant folder with the configuration file and XOR key
       - ..:/nimplant
+      # Sync the timezone with the host
+      - /etc/localtime:/etc/localtime:ro
     # TTY and stdin are required for the NimPlant console
     tty: true
     stdin_open: true

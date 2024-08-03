@@ -203,7 +203,7 @@ The same `chvancooten/nimplant` container that can be used for compilation can b
 You can spin up a NimPlant server with the below example command:
 
 ```bash
-docker run --rm -p80:80 -p443:443 -p127.0.0.1:31337:31337 -v ${PWD}/.xorkey:/nimplant/.xorkey -v ${PWD}/config.toml:/nimplant/config.toml chvancooten/nimplant:latest python3 /nimplant/nimplant.py server
+docker run --rm -p80:80 -p443:443 -p127.0.0.1:31337:31337 -v ${PWD}:/nimplant -v /etc/localtime:/etc/localtime:ro chvancooten/nimplant:latest python3 /nimplant/nimplant.py server
 ```
 
 > Note: This is an example command, make sure to tweak arguments such as the mounted volumes to your situation.

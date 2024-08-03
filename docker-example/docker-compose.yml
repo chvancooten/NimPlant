@@ -14,7 +14,9 @@ services:
     volumes:
       # Mount our NimPlant folder with the configuration file and XOR key
       - ..:/nimplant
-
+    # TTY and stdin are required for the NimPlant console
+    tty: true
+    stdin_open: true
     networks:
       - internal
 

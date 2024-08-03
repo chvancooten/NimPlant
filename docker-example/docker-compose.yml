@@ -12,14 +12,8 @@ services:
     ports:
       - "127.0.0.1:31337:31337"
     volumes:
-      # Mount our configuration file
-      - ./config.toml:/nimplant/config.toml
-      # Add volumes for artifacts/output as desired
-      - ./out/bin-nim:/nimplant/client/bin
-      - ./out/bin-rust:/nimplant/client-rs/bin
-      - ./out/server/logs:/nimplant/server/logs
-      - ./out/server/uploads:/nimplant/server/uploads
-      - ./out/server/downloads:/nimplant/server/downloads
+      # Mount our NimPlant folder with the configuration file and XOR key
+      - ..:/nimplant
 
     networks:
       - internal

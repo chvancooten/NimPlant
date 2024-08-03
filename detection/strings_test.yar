@@ -4,7 +4,7 @@ rule SearchStrings
         description = "Searches for specific strings in binaries and processes"
     
     strings:
-        //$nimplant_string1 = "nimplant" nocase
+        $nimplant_string1 = "nimplant" nocase
 
         $suspicious_string1 = "dinvoke"
 

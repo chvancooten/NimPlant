@@ -50,7 +50,7 @@ A modern version of Python3 is required to run Nimplant.
 
 - Install the Rust toolchain (installation via `rustup` is recommended).
 - Install the MinGW windows target: `rustup target add x86_64-pc-windows-gnu`.
-- Recommended for increased opsec: Modify your `~/.cargo/config.toml` file as per `Config.toml` and use the nighly build chain (`rustup default nightly`).
+- Recommended for increased opsec: Modify your `~/.cargo/config.toml` file as per `Cargo.toml` and use the nighly build chain (`rustup default nightly`).
 
 > **Note:** Even if compiling on Windows, the `x86_64-pc-windows-gnu` target is recommended. It results in slightly larger binaries, but appears to be more stable when shellcode is generated from the resulting DLL. You may modify `rust-toolchain.toml` to change the target to `x86_64-pc-windows-msvc`, but generated shellcode may not work correctly in all cases. 
 

@@ -142,17 +142,17 @@ To use Docker, you can use the public `chvancooten/nimplant` container from [Doc
 
 This will build a container tagged `nimplant:latest`. Note: this may take a while and produce a sizeable container due to the development dependencies!
 
-Once this is done, you can run the container from the command line to run the NimPlant server or compile your artifacts.
+Once this is done, you can run the container from the command line to compile your artifacts.
 
 ```bash
-docker run --rm -it -v ${PWD}:/nimplant -p80:80 -p443:443 -p31337:31337 chvancooten/nimplant:latest /bin/bash
+docker run --rm -v ${PWD}/.xorkey:/nimplant/.xorkey -v ${PWD}/config.toml:/nimplant/config.toml -v ${PWD}/out/bin-nim:/nimplant/client/bin chvancooten/nimplant:latest python3 /nimplant/nimplant.py compile exe nim
 ```
 
-> Note: Make sure to tweak the command based on your preferences (volume mounting / port forwarding). Also ensure that the container allows non-localhost connections in `config.toml`.
+> Note: This is an example command, make sure to tweak arguments such as the mounted volumes to your situation.
 
-### Usage
+### Starting the Server
 
-Once you have your binaries ready, you can spin up your NimPlant server! No additional configuration is necessary as it reads from the same `config.toml` file. To launch a server, simply run `python nimplant.py server` (with sudo privileges if running on Linux). You can use the console once a Nimplant checks in, or access the web interface at `http://localhost:31337` (by default).
+Once you have your binaries ready, you can spin up your NimPlant server! If you compiled locally, no additional configuration is necessary as it reads from the same `config.toml` file. To launch a server, simply run `python nimplant.py server` (with sudo privileges if running on Linux). You can use the console once a Nimplant checks in, or access the web interface at `http://localhost:31337` (by default).
 
 **Notes**:
 - If you are running your NimPlant server externally from the machine where binaries are compiled, make sure that both `config.toml` and `.xorkey` match. If not, NimPlant will not be able to connect.
@@ -195,6 +195,22 @@ PS C:\NimPlant> python .\nimplant.py server
 ```
 
 This will start both the C2 API and management web server (in the example above at `http://127.0.0.1:31337`) and the NimPlant listener (in the example above at `https://0.0.0.0:443`). Once a NimPlant checks in, you can use both the web interface and the console to send commands to NimPlant. 
+
+### Starting the Server with Docker
+
+The same `chvancooten/nimplant` container that can be used for compilation can be used for running the NimPlant server as well. For NimPlant to recognize the server, the `config.toml` and `.xorkey` files need to match the machine where NimPlant was compiled (this is automatically correct if you used the same Docker container for compilation). Furthermore, the `config.toml` file needs to be configured correctly for docker, most notably the management server IP must be set to `0.0.0.0` to reach it via Docker (make sure to only expose it on the local interface on your host).
+
+You can spin up a NimPlant server with the below example command:
+
+```bash
+docker run --rm -p80:80 -p443:443 -p127.0.0.1:31337:31337 -v ${PWD}/.xorkey:/nimplant/.xorkey -v ${PWD}/config.toml:/nimplant/config.toml chvancooten/nimplant:latest python3 /nimplant/nimplant.py server
+```
+
+> Note: This is an example command, make sure to tweak arguments such as the mounted volumes to your situation.
+
+Using Docker allows you to easily set up more complex configurations. As an example, the `docker-example` directory contains a`docker-compose.yml` file that shows how to expose NimPlant behind a Nginx redirector using HTTPS and a dummy landing page.  
+
+### Usage
 
 Available commands are as follows. You can get detailed help for any command by typing `help [command]`. Certain commands denoted with (GUI) can be configured graphically when using the web interface, this can be done by calling the command without any arguments.
 
@@ -280,7 +296,7 @@ By default, NimPlant support push notifications via the `notify_user()` hook def
 As a normal user, you shouldn't have to modify or re-build the UI that comes with Nimplant. However, if you so desire to make changes, install NodeJS and run an `npm install` while in the `ui` directory. Then run `ui/build-ui.py`. This will take care of pulling the packages, compiling the Next.JS frontend, and placing the files in the right location for the Nimplant server to use them. 
 
 #### A word on production use and OPSEC
-NimPlant was developed as a learning project and released to the public for transparency and educational purposes. For a large part, it makes no effort to hide its intentions. Additionally, protections have been put in place to prevent abuse. In other words, **do NOT use NimPlant in production engagements as-is without thorough source code review and modifications**! Also remember that, as with any C2 framework, the OPSEC fingerprint of running certain commands should be considered before deployment. NimPlant can be compiled without OPSEC-risky commands by setting `riskyMode` to `false` in `config.toml`.
+NimPlant was developed as a learning project and released to the public for transparency and educational purposes. Antivirus or EDR evasion is **not** a goal for the out-of-the-box implant(s). For a large part, NimPlant makes no effort to hide its intentions. Additionally, protections have been put in place to prevent abuse. In other words, **do NOT use NimPlant in production engagements as-is without thorough source code review and modifications**! Also remember that, as with any C2 framework, the OPSEC fingerprint of running certain commands should be considered before deployment. NimPlant can be compiled without OPSEC-risky commands by setting `riskyMode` to `false` in `config.toml`.
 
 ## Troubleshooting
 There are many reasons why Nimplant may fail to compile or run. If you encounter issues, please try the following (in order):

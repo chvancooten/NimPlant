@@ -1,0 +1,45 @@
+# Example docker-compose file to run NimPlant with Nginx as a reverse proxy
+#
+# To use, move a `config.toml` file to the same directory as this file,
+# create a `certs` directory and place your SSL certificates there,
+# and update the placeholder html in the `html` directory.
+
+services:
+  nimplant:
+    image: chvancooten/nimplant:latest
+    container_name: nimplant
+    command: python3 nimplant.py server
+    ports:
+      - "127.0.0.1:31337:31337"
+    volumes:
+      # Mount our configuration file
+      - ./config.toml:/nimplant/config.toml
+      # Add volumes for artifacts/output as desired
+      - ./out/bin-nim:/nimplant/client/bin
+      - ./out/bin-rust:/nimplant/client-rs/bin
+      - ./out/server/logs:/nimplant/server/logs
+      - ./out/server/uploads:/nimplant/server/uploads
+      - ./out/server/downloads:/nimplant/server/downloads
+
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount our configuration file
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      # Place your placeholder HTML (at least index.html) in ./html
+      - ./html:/usr/share/nginx/html
+      # Request certs with e.g. `certbot certonly -d example.com` and place in ./certs
+      - ./certs:/usr/share/nginx/certs
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

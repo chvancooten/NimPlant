@@ -178,9 +178,7 @@ def flask_listener(xor_key):
                 if np.pending_tasks:
                     # There is a task - check in to update 'last seen' and return the task
                     np.checkin()
-                    task = encrypt_data(
-                        json.dumps(np.get_next_task()), np.encryption_key
-                    )
+                    task = encrypt_data(np.get_next_task(), np.encryption_key)
                     return flask.jsonify(t=task), 200
                 else:
                     # There is no task - check in to update 'last seen'

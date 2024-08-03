@@ -123,7 +123,7 @@ def handle_command(raw_command, np: NimPlant = None):
 
         # Handle commands that do not need any server-side handling
         elif cmd in nimplant_cmds:
-            guid = np.add_task(" ".join(shlex.quote(arg) for arg in [cmd, *args]))
+            guid = np.add_task(list([cmd, *args]), task_friendly=raw_command)
             func.nimplant_print(
                 f"Staged command '{raw_command}'.", np.guid, task_guid=guid
             )

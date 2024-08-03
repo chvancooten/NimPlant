@@ -1,0 +1,15 @@
+.devcontainer
+.git
+.github
+.gitignore
+.venv
+.xorkey
+client-rs/bin/
+client-rs/target/
+client/bin/
+config.toml
+config.toml.example
+detection/
+LICENSE
+README.md
+ui/

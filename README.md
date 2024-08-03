@@ -3,18 +3,15 @@
     <img src="ui/public/nimplant-logomark.svg" height="150">
   </a>
 
-  <h1>NimPlant - A light first-stage C2 implant written in Nim and Python</h1>
+  <h1>NimPlant - A light first-stage C2 implant written in Nim|Rust and Python</h1>
 </div>
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chvancooten/NimPlant/main.yml?label=Build)](https://github.com/chvancooten/NimPlant/actions)
 [![PRs Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-_By **Cas van Cooten** ([@chvancooten](https://twitter.com/chvancooten)), with special thanks to some awesome folks:_
-- _Fabian Mosch ([@S3cur3Th1sSh1t](https://twitter.com/ShitSecure)) for sharing dynamic invocation implementation in Nim and the Ekko sleep mask function_
-- _snovvcrash ([@snovvcrash](https://github.com/snovvcrash)) for adding the initial version of `execute-assembly` & self-deleting implant option_
-- _Furkan Göksel ([@frkngksl](https://github.com/frkngksl)) for his work on [NiCOFF](https://github.com/frkngksl/NiCOFF) and Guillaume Caillé ([@OffenseTeacher](https://github.com/offenseteacher)) for the initial implementation of `inline-execute`_
-- _Kadir Yamamoto ([@yamakadi](https://github.com/yamakadi)) for the design work, initial Vue.JS front-end and rusty nimplant, part of an [older branch](https://github.com/chvancooten/NimPlant/tree/rust-implant-and-old-ui) (unmaintained)_
-- _Mauricio Velazco ([@mvelazco](https://twitter.com/mvelazco)), Dylan Makowski ([@AnubisOnSec](https://twitter.com/AnubisOnSec)), Andy Palmer ([@pivotal8ytes](github.com/pivotal8ytes)), Medicus Riddick ([@retsdem22](https://twitter.com/retsdem22)), Spencer Davis ([@nixbyte](https://twitter.com/nixbyte)), and Florian Roth ([@cyb3rops](https://twitter.com/cyb3rops)), for their efforts in testing the pre-release and contributing [detections](https://github.com/chvancooten/NimPlant/tree/main/detection)_
+By **Cas van Cooten** ([@chvancooten](https://twitter.com/chvancooten)), with special thanks to some awesome folks: 
+
+_Kadir Yamamoto ([@yamakadi](https://github.com/yamakadi)), Furkan Göksel ([@frkngksl](https://github.com/frkngksl)) , Fabian Mosch ([@S3cur3Th1sSh1t](https://twitter.com/ShitSecure)), Rafael Félix ([@b1scoito](https://github.com/b1scoito)), Guillaume Caillé ([@OffenseTeacher](https://github.com/offenseteacher)), and many others!_
 
 If NimPlant has been useful to you and/or you like my work in general, your support is very welcome:
 
@@ -22,12 +19,12 @@ If NimPlant has been useful to you and/or you like my work in general, your supp
 
 # Feature Overview
 
-- Lightweight and configurable implant written in the Nim programming language 
+- Lightweight and configurable implant written in the Nim and Rust programming languages
 - Pretty web GUI that will make you look cool during all your ops
-- Encryption and compression of all traffic by default, obfuscates static strings in implant artefacts
+- Encryption and compression of all traffic by default, obfuscates static strings in implant artifacts
 - Support for several implant types, including native binaries (exe/dll), shellcode or self-deleting executables
 - Wide selection of commands focused on early-stage operations including local enumeration, file or registry management, and web interactions
-- Easy deployment of more advanced functionality or payloads via `inline-execute`, `shinject` (using dynamic invocation), or in-thread `execute-assembly`
+- Easy deployment of more advanced functionality or payloads via `inline-execute`, `shinject` (using dynamic invocation), `powershell` in a custom runspace, or in-thread `execute-assembly`
 - Support for operations on any platform, implant only targeting x64 Windows for now
 - Comprehensive logging of all interactions and file operations
 - Much, much more, just see below :)
@@ -36,11 +33,26 @@ If NimPlant has been useful to you and/or you like my work in general, your supp
 
 ## Installation
 
-- Install Nim and Python3 on your OS of choice (installation via `choosenim` is recommended, as `apt` doesn't always have the latest version).
-- Install required packages using the Nimble package manager (`cd client; nimble install -d`).
+A modern version of Python3 is required to run Nimplant.
+
+### Server
+
 - Install `requirements.txt` from the server folder (`pip3 install -r server/requirements.txt`).
+
+### Implant (Nim)
+
+- Install the Nim toolchain for your platform (installation via `choosenim` is recommended, as `apt` doesn't always have the latest version).
+- Install required packages using the Nimble package manager (`cd client; nimble install -d`).
 - If you're on Linux or MacOS, install the `mingw` toolchain for your platform (`brew install mingw-w64` or `apt install mingw-w64`).
 - If you're on ArchLinux specifically, modify your Mingw config as per [this gist](https://gist.github.com/tothi/1f452e0466070db5921135ab312749fc) (thanks [@tothi](https://github.com/tothi)!).
+
+### Implant (Rust)
+
+- Install the Rust toolchain (installation via `rustup` is recommended).
+- Install the MinGW windows target: `rustup target add x86_64-pc-windows-gnu`.
+- Recommended for increased opsec: Modify your `~/.cargo/config.toml` file as per `Config.toml` and use the nighly build chain (`rustup default nightly`).
+
+> **Note:** Even if compiling on Windows, the `x86_64-pc-windows-gnu` target is recommended. It results in slightly larger binaries, but appears to be more stable when shellcode is generated from the resulting DLL. You may modify `rust-toolchain.toml` to change the target to `x86_64-pc-windows-msvc`, but generated shellcode may not work correctly in all cases. 
 
 ## Getting Started
 
@@ -72,16 +84,16 @@ An overview of settings is provided below.
 
 ### Compilation
 
-Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python NimPlant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, or `nim-debug`). Files will be written to `client/bin/`.
+Once the configuration is to your liking, you can generate NimPlant binaries to deploy on your target. Currently, NimPlant supports `.exe`, `.dll`, and `.bin` binaries for (self-deleting) executables, libraries, and position-independent shellcode (through sRDI), respectively. To generate, run `python nimplant.py compile` followed by your preferred binaries (`exe`, `exe-selfdelete`, `dll`, `raw`, or `all`) and, optionally, the implant type (`nim`, `rust`, `nim-debug`, or `rust-debug` - will compile Nim by default). Files will be written to `client/bin/` or `client-rs/bin/`, respectively.
 
 You may pass the `rotatekey` argument to generate and use a new XOR key during compilation.
 
 **Notes**:
 - NimPlant only supports x64 at this time!
-- The entrypoint for DLL files is `Update`, which is triggered by DllMain for all entrypoints. This means you can use e.g. `rundll32 .\NimPlant.dll,Update` to trigger, or use your LOLBIN of choice to sideload it (may need some modifications in `client/NimPlant.nim`)
+- The entrypoint for DLL files is `Update`, which is triggered by DllMain for all entrypoints. This means you can use e.g. `rundll32 .\NimPlant.dll,Update` to trigger, or use your LOLBIN of choice to sideload it (may need some modifications in `client/NimPlant.nim` or `client-rs/src/lib.rs`)
 
 ```
-PS C:\NimPlant> python .\NimPlant.py compile all
+PS C:\NimPlant> python .\nimplant.py compile all
 
                   *    *(#    #
                   **  **(##  ##
@@ -105,7 +117,7 @@ PS C:\NimPlant> python .\NimPlant.py compile all
     | |\  | | | | | | |  __/| | (_| | | | | |_
     |_| \_|_|_| |_| |_|_|   |_|\__,_|_| |_|\__|
 
-        A light-weight stage 1 implant and C2 based on Nim and Python
+        A light-weight stage 1 implant and C2 based on Nim|Rust and Python
         By Cas van Cooten (@chvancooten)
 
 Compiling .exe for NimPlant
@@ -118,17 +130,29 @@ Done compiling! You can find compiled binaries in 'client/bin/'.
 
 ### Compilation with Docker
 
-The Docker image [chvancooten/nimbuild](https://hub.docker.com/r/chvancooten/nimbuild) can be used to compile NimPlant binaries. Using Docker is easy and avoids dependency issues, as all required dependencies are pre-installed in this container.
+Using Docker is easy and avoids dependency issues, as all required build-time and runtime dependencies are pre-installed in the container.
 
-To use it, install Docker for your OS and start the compilation in a container as follows.
+To use Docker, you can use the public `chvancooten/nimplant` container from [Docker Hub](https://hub.docker.com/r/chvancooten/nimplant) (built via CI/CD), or build the `Dockerfile` from source. 
+
+> To build from source, run the following from the main directory:
+> 
+> ```bash
+> docker build . -t nimplant
+> ```
+
+This will build a container tagged `nimplant:latest`. Note: this may take a while and produce a sizeable container due to the development dependencies!
+
+Once this is done, you can run the container from the command line to compile your artifacts.
 
 ```bash
-docker run --rm -v `pwd`:/usr/src/np -w /usr/src/np chvancooten/nimbuild python3 NimPlant.py compile all
+docker run --rm -v ${PWD}/.xorkey:/nimplant/.xorkey -v ${PWD}/config.toml:/nimplant/config.toml -v ${PWD}/out/bin-nim:/nimplant/client/bin chvancooten/nimplant:latest python3 /nimplant/nimplant.py compile exe nim
 ```
 
-### Usage
+> Note: This is an example command, make sure to tweak arguments such as the mounted volumes to your situation.
 
-Once you have your binaries ready, you can spin up your NimPlant server! No additional configuration is necessary as it reads from the same `config.toml` file. To launch a server, simply run `python NimPlant.py server` (with sudo privileges if running on Linux). You can use the console once a Nimplant checks in, or access the web interface at `http://localhost:31337` (by default).
+### Starting the Server
+
+Once you have your binaries ready, you can spin up your NimPlant server! If you compiled locally, no additional configuration is necessary as it reads from the same `config.toml` file. To launch a server, simply run `python nimplant.py server` (with sudo privileges if running on Linux). You can use the console once a Nimplant checks in, or access the web interface at `http://localhost:31337` (by default).
 
 **Notes**:
 - If you are running your NimPlant server externally from the machine where binaries are compiled, make sure that both `config.toml` and `.xorkey` match. If not, NimPlant will not be able to connect.
@@ -136,10 +160,10 @@ Once you have your binaries ready, you can spin up your NimPlant server! No addi
 - If NimPlant cannot connect to a server or loses connection, it will retry 5 times with an exponential backoff time before attempting re-registration. If it fails to register 5 more times (same backoff logic), it will kill itself. The backoff triples the sleep time on each failed attempt. For example, if the sleep time is 10 seconds, it will wait 10, then 30 (3^1 * 10), then 90 (3^2 * 10), then 270 (3^3 * 10), then 810 seconds before giving up (these parameters are hardcoded but can be changed in `client/NimPlant.nim`).
 - Logs are stored in the `server/logs` directory. Each server instance creates a new log folder, and logs are split per console/nimplant session. Downloads and uploads (including files uploaded via the web GUI) are stored in the `server/uploads` and `server/downloads` directories respectively.
 - Nimplant and server details are stored in an SQLite database at `server/nimplant.db`. This data is also used to recover Nimplants after a server restart.
-- Logs, uploaded/downloaded files, and the database can be cleaned up by running `NimPlant.py` with the `cleanup` flag. Caution: This will purge everything, so make sure to back up what you need first!
+- Logs, uploaded/downloaded files, and the database can be cleaned up by running `nimplant.py` with the `cleanup` flag. Caution: This will purge everything, so make sure to back up what you need first!
 
 ```
-PS C:\NimPlant> python .\NimPlant.py server     
+PS C:\NimPlant> python .\nimplant.py server     
 
                   *    *(#    #
                   **  **(##  ##
@@ -163,7 +187,7 @@ PS C:\NimPlant> python .\NimPlant.py server
     | |\  | | | | | | |  __/| | (_| | | | | |_
     |_| \_|_|_| |_| |_|_|   |_|\__,_|_| |_|\__|
 
-        A light-weight stage 1 implant and C2 written in Nim and Python
+        A light-weight stage 1 implant and C2 written in Nim|Rust and Python
         By Cas van Cooten (@chvancooten)
 
 [06/02/2023 10:47:23] Started management server on http://127.0.0.1:31337.
@@ -171,6 +195,22 @@ PS C:\NimPlant> python .\NimPlant.py server
 ```
 
 This will start both the C2 API and management web server (in the example above at `http://127.0.0.1:31337`) and the NimPlant listener (in the example above at `https://0.0.0.0:443`). Once a NimPlant checks in, you can use both the web interface and the console to send commands to NimPlant. 
+
+### Starting the Server with Docker
+
+The same `chvancooten/nimplant` container that can be used for compilation can be used for running the NimPlant server as well. For NimPlant to recognize the server, the `config.toml` and `.xorkey` files need to match the machine where NimPlant was compiled (this is automatically correct if you used the same Docker container for compilation). Furthermore, the `config.toml` file needs to be configured correctly for docker, most notably the management server IP must be set to `0.0.0.0` to reach it via Docker (make sure to only expose it on the local interface on your host).
+
+You can spin up a NimPlant server with the below example command:
+
+```bash
+docker run --rm -p80:80 -p443:443 -p127.0.0.1:31337:31337 -v ${PWD}:/nimplant -v /etc/localtime:/etc/localtime:ro chvancooten/nimplant:latest python3 /nimplant/nimplant.py server
+```
+
+> Note: This is an example command, make sure to tweak arguments such as the mounted volumes to your situation.
+
+Using Docker allows you to easily set up more complex configurations. As an example, the `docker-example` directory contains a`docker-compose.yml` file that shows how to expose NimPlant behind a Nginx redirector using HTTPS and a dummy landing page.  
+
+### Usage
 
 Available commands are as follows. You can get detailed help for any command by typing `help [command]`. Certain commands denoted with (GUI) can be configured graphically when using the web interface, this can be done by calling the command without any arguments.
 
@@ -220,11 +260,12 @@ upload            (GUI) [localfilepath] <remotefilepath> Upload a file from the 
 wget              [url] <remotefilepath> Download a file to disk remotely.
 whoami            Get the user ID that NimPlant is running as.
 ```
+
 #### Using Beacon Object Files (BOFs)
 
-**NOTE: BOFs are volatile by nature, and running a faulty BOF or passing wrong arguments or types WILL crash your NimPlant session! Make sure to test BOFs before deploying!**
+**NOTE: BOFs are volatile by nature, and running a faulty BOF or passing wrong arguments or types may crash your NimPlant session! Make sure to test BOFs before deploying!**
 
-NimPlant supports the in-memory loading of BOFs thanks to the great [NiCOFF project](https://github.com/frkngksl/NiCOFF). Running a bof requires a local compiled BOF object file (usually called something like `bofname.x64.o`), an entrypoint (commonly `go`), and a list of arguments with their respective argument types. Arguments are passed as a space-seperated `arg argtype` pair. 
+NimPlant supports the in-memory loading of BOFs thanks to the great [NiCOFF](https://github.com/frkngksl/NiCOFF) (Nim) and [Coffee](https://github.com/hakaioffsec/coffee) (Rust) projects. Running a bof requires a local compiled BOF object file (usually called something like `bofname.x64.o`), an entrypoint (commonly `go`), and a list of arguments with their respective argument types. Arguments are passed as a space-seperated `arg argtype` pair. 
 
 Argument are given in accordance with the "Zzsib" format, so can be either `string` (alias: `z`), `wstring` (or `Z`), `integer` (aliases: `int` or `i`), `short` (`s`), or `binary` (`bin` or `b`). Binary arguments can be a raw binary string or base64-encoded, the latter is recommended to avoid bad characters.
 
@@ -255,14 +296,14 @@ By default, NimPlant support push notifications via the `notify_user()` hook def
 As a normal user, you shouldn't have to modify or re-build the UI that comes with Nimplant. However, if you so desire to make changes, install NodeJS and run an `npm install` while in the `ui` directory. Then run `ui/build-ui.py`. This will take care of pulling the packages, compiling the Next.JS frontend, and placing the files in the right location for the Nimplant server to use them. 
 
 #### A word on production use and OPSEC
-NimPlant was developed as a learning project and released to the public for transparency and educational purposes. For a large part, it makes no effort to hide its intentions. Additionally, protections have been put in place to prevent abuse. In other words, **do NOT use NimPlant in production engagements as-is without thorough source code review and modifications**! Also remember that, as with any C2 framework, the OPSEC fingerprint of running certain commands should be considered before deployment. NimPlant can be compiled without OPSEC-risky commands by setting `riskyMode` to `false` in `config.toml`.
+NimPlant was developed as a learning project and released to the public for transparency and educational purposes. Antivirus or EDR evasion is **not** a goal for the out-of-the-box implant(s). For a large part, NimPlant makes no effort to hide its intentions. Additionally, protections have been put in place to prevent abuse. In other words, **do NOT use NimPlant in production engagements as-is without thorough source code review and modifications**! Also remember that, as with any C2 framework, the OPSEC fingerprint of running certain commands should be considered before deployment. NimPlant can be compiled without OPSEC-risky commands by setting `riskyMode` to `false` in `config.toml`.
 
 ## Troubleshooting
 There are many reasons why Nimplant may fail to compile or run. If you encounter issues, please try the following (in order):
 
 - Ensure you followed the steps as described in the 'Installation' section above, double check that all dependencies are installed and the versions match
-- Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the `chvancooten/nimbuild` docker container to rule out any dependency issues
+- Ensure you followed the steps as described in the 'Compilation' section above, and that you have used the Docker container to rule out any dependency issues
 - Check the logs in the `server/logs` directory for any errors
-- Try the `nim-debug` compilation mode to compile with console and debug messages (.exe only) to see if any error messages are returned
+- Try the `nim-debug` or `rust-debug` compilation modes to compile with console and debug messages (.exe only) to see if any error messages are returned
 - Try compiling from another OS or with another toolchain to see if the same error occurs
-- If all of the above fails, submit an issue. Make sure to include the appropriate build information (OS, nim/python versions, dependency versions) and the outcome of the troubleshooting steps above. **Incomplete issues may be closed without notice.**
+- If all of the above fails, submit an issue. Make sure to include the appropriate build information (OS, nim/rust/python versions, dependency versions) and the outcome of the troubleshooting steps above. **Incomplete issues may be closed without notice.**

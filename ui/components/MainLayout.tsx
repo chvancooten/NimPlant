@@ -5,7 +5,7 @@ import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import NavbarContents from "./NavbarContents";
 
 // Basic component for highlighted text
-export function Highlight({children}: {children: React.ReactNode}) {
+export function Highlight({ children }: { children: React.ReactNode }) {
   return <Text c='rose' component='span' fw={700}>{children}</Text>
 }
 
@@ -59,7 +59,7 @@ function MainLayout({ children }: ChildrenProps) {
                   color="gray"
                   style={{ textTransform: 'lowercase', cursor: 'pointer' }}
                 >
-                  v1.3
+                  v1.4
                 </Badge>
               </Box>
             )}
@@ -73,7 +73,7 @@ function MainLayout({ children }: ChildrenProps) {
         <AppShell.Main>
           {children}
         </AppShell.Main>
-      </AppShell>        
+      </AppShell>
     </>
   )
 }

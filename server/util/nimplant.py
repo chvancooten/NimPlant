@@ -1,4 +1,5 @@
 import itertools
+import json
 import os
 import random
 import string
@@ -13,7 +14,7 @@ from server.util.config import config
 # Parse configuration from 'config.toml'
 try:
     initialSleepTime = config["nimplant"]["sleepTime"]
-    initialSleepJitter = config["nimplant"]["sleepTime"]
+    initialSleepJitter = config["nimplant"]["sleepJitter"]
     killDate = config["nimplant"]["killDate"]
 except KeyError as e:
     func.nimplant_print(
@@ -129,9 +130,7 @@ class Server:
 
     def has_active_nimplants(self):
         for np in self.nimplant_list:
-            if np.active:
-                if np.late:
-                    return False
+            if np.active and not np.late:
                 return True
         return False
 
@@ -206,7 +205,7 @@ class NimPlant:
         self.kill_date = killDate
         self.first_checkin = None
         self.last_checkin = None
-        self.pending_tasks = []  # list of dicts {"guid": X, "task": Y}
+        self.pending_tasks: List[str] = []
         self.hosting_file = None
         self.receiving_file = None
 
@@ -273,10 +272,13 @@ class NimPlant:
         self.late = False
         if self.pending_tasks:
             for t in self.pending_tasks:
-                if t["task"] == "kill":
+                task = json.loads(t)
+                if task.get("command") == "kill":
                     self.active = False
                     func.nimplant_print(
-                        f"NimPlant #{self.id} killed.", self.guid, task_guid=t["guid"]
+                        f"NimPlant #{self.id} killed.",
+                        self.guid,
+                        task_guid=task.get("guid"),
                     )
 
         db.db_update_nimplant(self)
@@ -315,7 +317,7 @@ class NimPlant:
             return False
 
     def kill(self):
-        self.add_task("kill")
+        self.add_task(["kill"])
 
     def get_info_pretty(self):
         return func.pretty_print(vars(self))
@@ -328,12 +330,18 @@ class NimPlant:
     def add_task(self, task, task_friendly=None):
         # Log the 'friendly' command separately, for use with B64-driven commands such as inline-execute
         if task_friendly is None:
-            task_friendly = task
+            task_friendly = " ".join(task)
+
+        command = task[0]
+        args = task[1:] if len(task) > 1 else []
+        task = " ".join(task)
 
         guid = "".join(
             random.choice(string.ascii_letters + string.digits) for i in range(8)
         )
-        self.pending_tasks.append({"guid": guid, "task": task})
+        self.pending_tasks.append(
+            json.dumps({"guid": guid, "command": command, "args": args})
+        )
         db.db_nimplant_log(self, task_guid=guid, task=task, task_friendly=task_friendly)
         db.db_update_nimplant(self)
         return guid

@@ -2,7 +2,7 @@
 
 # -----
 #
-#   NimPlant - A light-weight stage 1 implant and C2 written in Nim and Python
+#   NimPlant - A light-weight stage 1 implant and C2 written in Nim|Rust and Python
 #   By Cas van Cooten (@chvancooten)
 #
 #   This is a helper script to build the Next.JS frontend

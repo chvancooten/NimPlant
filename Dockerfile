@@ -35,3 +35,6 @@ RUN cd client; nimble install -d -y; cd ..
 EXPOSE 80
 EXPOSE 443
 EXPOSE 31337
+
+# Set the entrypoint to the nimplant.py helper script
+ENTRYPOINT [ "python3", "/nimplant/nimplant.py" ]

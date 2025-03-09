@@ -145,7 +145,7 @@ This will build a container tagged `nimplant:latest`. Note: this may take a whil
 Once this is done, you can run the container from the command line to compile your artifacts.
 
 ```bash
-docker run --rm -v ${PWD}/.xorkey:/nimplant/.xorkey -v ${PWD}/config.toml:/nimplant/config.toml -v ${PWD}/out/bin-nim:/nimplant/client/bin chvancooten/nimplant:latest python3 /nimplant/nimplant.py compile exe nim
+docker run --rm -it -v ${PWD}:/nimplant chvancooten/nimplant:latest compile exe rust
 ```
 
 > Note: This is an example command, make sure to tweak arguments such as the mounted volumes to your situation.
@@ -203,7 +203,7 @@ The same `chvancooten/nimplant` container that can be used for compilation can b
 You can spin up a NimPlant server with the below example command:
 
 ```bash
-docker run --rm -p80:80 -p443:443 -p127.0.0.1:31337:31337 -v ${PWD}:/nimplant -v /etc/localtime:/etc/localtime:ro chvancooten/nimplant:latest python3 /nimplant/nimplant.py server
+docker run --rm -it -p 80:80 -p 443:443 -p 127.0.0.1:31337:31337 -v ${PWD}:/nimplant -e "TZ=Europe/Amsterdam" chvancooten/nimplant:latest server
 ```
 
 > Note: This is an example command, make sure to tweak arguments such as the mounted volumes to your situation.

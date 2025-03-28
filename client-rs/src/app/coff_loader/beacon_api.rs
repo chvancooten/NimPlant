@@ -560,6 +560,7 @@ fn beacon_format_int(format: *mut Formatp, value: c_int) {
 }
 
 /// Send output to the Beacon operator.
+#[allow(static_mut_refs)]
 fn beacon_output(_type: c_int, data: *mut c_char, len: c_int) {
     unsafe { OUTPUT.append_char_array(data, len) }
 }
@@ -571,6 +572,7 @@ pub fn beacon_get_output_data() -> &'static mut Carrier {
 }
 
 /// Format and present output to the Beacon operator.
+#[allow(static_mut_refs)]
 unsafe extern "C" fn beacon_printf(_type: c_int, fmt: *mut c_char, mut args: ...) {
     let mut s = String::new();
 

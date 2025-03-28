@@ -5,41 +5,65 @@ use image::codecs::png::PngEncoder;
 use image::ImageEncoder;
 use std::io::Write;
 use std::os::raw::c_void;
-use windows_sys::Win32::Foundation::{HWND, RECT};
+use windows_sys::Win32::Foundation::HWND;
 use windows_sys::Win32::Graphics::Gdi::{
     BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
     SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HDC, SRCCOPY,
 };
-use windows_sys::Win32::UI::WindowsAndMessaging::{GetClientRect, GetDesktopWindow};
+use windows_sys::Win32::UI::HiDpi::{
+    SetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
+};
+use windows_sys::Win32::UI::WindowsAndMessaging::{
+    GetSystemMetrics, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
+};
 
 pub(crate) fn screenshot() -> String {
     let mut image_data: Vec<u8>;
     let width: i32;
     let height: i32;
+    let x_pos: i32;
+    let y_pos: i32;
 
     // Use Windows API to capture image data
     unsafe {
-        let mut screen_rect: RECT = std::mem::zeroed();
-        GetClientRect(GetDesktopWindow(), &mut screen_rect);
-        width = screen_rect.right - screen_rect.left;
-        height = screen_rect.bottom - screen_rect.top;
+        // Set thread DPI awareness temporarily for this function call
+        let old_dpi_context =
+            SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-        let h_screen: HDC = GetDC(GetDesktopWindow() as HWND);
+        // Get the virtual screen dimensions
+        // The virtual screen includes all monitors and accounts for scaling
+        x_pos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        y_pos = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+        let h_screen: HDC = GetDC(0 as HWND); // Get entire screen
         let h_dc: HDC = CreateCompatibleDC(h_screen);
         let h_bitmap = CreateCompatibleBitmap(h_screen, width, height);
 
-        SelectObject(h_dc, h_bitmap as _);
-        BitBlt(
-            h_dc,
-            0,
-            0,
-            width,
-            height,
-            h_screen,
-            screen_rect.left,
-            screen_rect.top,
-            SRCCOPY,
-        );
+        if h_bitmap == 0 {
+            // Handle bitmap creation failure
+            DeleteDC(h_dc);
+            windows_sys::Win32::Graphics::Gdi::ReleaseDC(0 as HWND, h_screen);
+            // Restore previous DPI awareness context
+            SetThreadDpiAwarenessContext(old_dpi_context);
+            return format!("Failed to create compatible bitmap");
+        }
+
+        let old_obj = SelectObject(h_dc, h_bitmap as _);
+
+        let blit_result = BitBlt(h_dc, 0, 0, width, height, h_screen, x_pos, y_pos, SRCCOPY);
+
+        if blit_result == 0 {
+            // Handle BitBlt failure
+            SelectObject(h_dc, old_obj);
+            DeleteObject(h_bitmap as _);
+            DeleteDC(h_dc);
+            windows_sys::Win32::Graphics::Gdi::ReleaseDC(0 as HWND, h_screen);
+            // Restore previous DPI awareness context
+            SetThreadDpiAwarenessContext(old_dpi_context);
+            return format!("Failed to capture screen with BitBlt");
+        }
 
         let mut bitmap_info: BITMAPINFO = std::mem::zeroed();
         bitmap_info.bmiHeader.biSize = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
@@ -50,7 +74,7 @@ pub(crate) fn screenshot() -> String {
         bitmap_info.bmiHeader.biCompression = BI_RGB;
 
         image_data = vec![0; (width * height * 4) as usize];
-        GetDIBits(
+        let dibits_result = GetDIBits(
             h_dc,
             h_bitmap,
             0,
@@ -60,8 +84,24 @@ pub(crate) fn screenshot() -> String {
             DIB_RGB_COLORS,
         );
 
+        if dibits_result == 0 {
+            // Handle GetDIBits failure
+            SelectObject(h_dc, old_obj);
+            DeleteObject(h_bitmap as _);
+            DeleteDC(h_dc);
+            windows_sys::Win32::Graphics::Gdi::ReleaseDC(0 as HWND, h_screen);
+            // Restore previous DPI awareness context
+            SetThreadDpiAwarenessContext(old_dpi_context);
+            return format!("Failed to get bitmap data");
+        }
+
+        SelectObject(h_dc, old_obj);
         DeleteObject(h_bitmap as _);
         DeleteDC(h_dc);
+        windows_sys::Win32::Graphics::Gdi::ReleaseDC(0 as HWND, h_screen);
+
+        // Restore previous DPI awareness context
+        SetThreadDpiAwarenessContext(old_dpi_context);
     }
 
     // Convert the image data from BGRA to RGBA

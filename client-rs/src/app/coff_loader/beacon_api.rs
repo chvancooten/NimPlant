@@ -459,7 +459,7 @@ unsafe extern "C" fn beacon_format_printf(format: *mut Formatp, fmt: *const c_ch
     let mut s = String::new();
     let bytes_written = printf_compat::format(
         fmt,
-        args.as_va_list(),
+        args,
         printf_compat::output::fmt_write(&mut s),
     );
 
@@ -576,7 +576,7 @@ unsafe extern "C" fn beacon_printf(_type: c_int, fmt: *mut c_char, mut args: ...
 
     printf_compat::format(
         fmt,
-        args.as_va_list(),
+        args,
         printf_compat::output::fmt_write(&mut s),
     );
 
